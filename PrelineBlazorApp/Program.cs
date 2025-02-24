@@ -1,3 +1,4 @@
+using Microsoft.Extensions.FileProviders;
 using PrelineBlazorApp.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,14 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
+
+// Serve static files from node_modules
+var nodeModulesPath = Path.Combine(builder.Environment.ContentRootPath, "node_modules");
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(nodeModulesPath),
+    RequestPath = "/node_modules"
+});
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

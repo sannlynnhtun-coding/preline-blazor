@@ -10,7 +10,6 @@
 	@* <link rel="stylesheet" href="PrelineBlazorApp.styles.css" /> *@
 	<link rel="icon" type="image/png" href="favicon.png" />
 
-	@* <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/preline/dist/preline.css"> *@
 	<link href="css/output.css" rel="stylesheet" />
 	<HeadOutlet @rendermode="InteractiveServer" />
 </head>
@@ -18,10 +17,8 @@
 <body>
 	<Routes @rendermode="InteractiveServer" />
 	<script src="_framework/blazor.web.js"></script>
-	@* <script src="https://cdn.jsdelivr.net/npm/preline/dist/preline.min.js"></script> *@
-	@* <script src="node_modules/preline/dist/preline.js"></script> *@
 	<script src="../node_modules/preline/dist/preline.js"></script>
-	@* <script src="lib/preline/preline.js"></script> *@
+	@* <script src="js/preline.js"></script> *@
 
 	<script>
 		window.initializePreline = () => {
