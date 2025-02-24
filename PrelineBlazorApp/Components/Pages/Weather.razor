@@ -1,56 +1,166 @@
 ﻿@page "/weather"
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Weather</PageTitle>
 
-<h1>Weather</h1>
+<h1 class="text-3xl font-bold mb-4">Weather</h1>
 
-<p>This component demonstrates showing data.</p>
+<p class="mb-4">This component demonstrates showing data.</p>
 
 @if (forecasts == null)
 {
-    <p><em>Loading...</em></p>
+    <p class="text-gray-600"><em>Loading...</em></p>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
                 <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Temp. (C)</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Temp. (F)</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Summary</th>
                 </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach (var forecast in PaginatedForecasts)
+                {
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@forecast.Date.ToShortDateString()</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@forecast.TemperatureC</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@forecast.TemperatureF</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@forecast.Summary</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Advanced Bordered Pagination -->
+    <nav class="flex items-center gap-x-1 mt-4 bg-white border border-gray-200 rounded-lg p-2" aria-label="Pagination">
+        <button type="button" class="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10 border border-gray-200" @onclick="PreviousPage" disabled="@(CurrentPage == 1)">
+            <svg class="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"></path>
+            </svg>
+            <span>Previous</span>
+        </button>
+
+        <!-- First Page -->
+        <button type="button" class="min-h-[38px] min-w-[38px] flex justify-center items-center text-gray-800 hover:bg-gray-100 py-2 px-3 text-sm rounded-lg focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10 border border-gray-200 @(1 == CurrentPage ? "bg-gray-200 dark:bg-neutral-600" : "")" @onclick="() => GoToPage(1)">
+            1
+        </button>
+
+        <!-- Ellipsis (if needed) -->
+        @if (CurrentPage > 4)
+        {
+            <span class="min-h-[38px] min-w-[38px] flex justify-center items-center text-gray-800 py-2 px-3 text-sm">...</span>
+        }
+
+        <!-- Middle Pages -->
+        @{
+            int startPage = Math.Max(2, CurrentPage - 2);
+            int endPage = Math.Min(TotalPages - 1, CurrentPage + 2);
+
+            // Ensure we always show 9 buttons (including ellipsis)
+            if (CurrentPage <= 4)
+            {
+                startPage = 2;
+                endPage = Math.Min(6, TotalPages - 1);
             }
-        </tbody>
-    </table>
+            else if (CurrentPage >= TotalPages - 3)
+            {
+                startPage = Math.Max(TotalPages - 5, 2);
+                endPage = TotalPages - 1;
+            }
+
+            for (int i = startPage; i <= endPage; i++)
+            {
+                <button type="button" class="min-h-[38px] min-w-[38px] flex justify-center items-center text-gray-800 hover:bg-gray-100 py-2 px-3 text-sm rounded-lg focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10 border border-gray-200 @(i == CurrentPage ? "bg-gray-200 dark:bg-neutral-600" : "")" @onclick="() => GoToPage(i)">
+                    @i
+                </button>
+            }
+        }
+
+        <!-- Ellipsis (if needed) -->
+        @if (CurrentPage < TotalPages - 3)
+        {
+            <span class="min-h-[38px] min-w-[38px] flex justify-center items-center text-gray-800 py-2 px-3 text-sm">...</span>
+        }
+
+        <!-- Last Page -->
+        @if (TotalPages > 1)
+        {
+            <button type="button" class="min-h-[38px] min-w-[38px] flex justify-center items-center text-gray-800 hover:bg-gray-100 py-2 px-3 text-sm rounded-lg focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10 border border-gray-200 @(TotalPages == CurrentPage ? "bg-gray-200 dark:bg-neutral-600" : "")" @onclick="() => GoToPage(TotalPages)">
+                @TotalPages
+            </button>
+        }
+
+        <button type="button" class="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10 border border-gray-200" @onclick="NextPage" disabled="@(CurrentPage == TotalPages)">
+            <span>Next</span>
+            <svg class="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m9 18 6-6-6-6"></path>
+            </svg>
+        </button>
+    </nav>
+    <!-- End Advanced Bordered Pagination -->
 }
 
 @code {
     private WeatherForecast[]? forecasts;
+    private List<WeatherForecast> PaginatedForecasts = new();
+    private int CurrentPage = 1;
+    private int PageSize = 5; // Number of items per page
+    private int TotalPages => (int)Math.Ceiling((double)(forecasts?.Length ?? 0)) / PageSize;
 
     protected override async Task OnInitializedAsync()
     {
         // Simulate asynchronous loading to demonstrate a loading indicator
         await Task.Delay(500);
 
+        // Generate 94 rows of data
         var startDate = DateOnly.FromDateTime(DateTime.Now);
         var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-        forecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast
+        forecasts = Enumerable.Range(1, 94).Select(index => new WeatherForecast
         {
             Date = startDate.AddDays(index),
             TemperatureC = Random.Shared.Next(-20, 55),
             Summary = summaries[Random.Shared.Next(summaries.Length)]
         }).ToArray();
+
+        UpdatePaginatedForecasts();
+    }
+
+    private void UpdatePaginatedForecasts()
+    {
+        PaginatedForecasts = forecasts
+            .Skip((CurrentPage - 1) * PageSize)
+            .Take(PageSize)
+            .ToList();
+    }
+
+    private void GoToPage(int page)
+    {
+        CurrentPage = page;
+        UpdatePaginatedForecasts();
+    }
+
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+            UpdatePaginatedForecasts();
+        }
+    }
+
+    private void NextPage()
+    {
+        if (CurrentPage < TotalPages)
+        {
+            CurrentPage++;
+            UpdatePaginatedForecasts();
+        }
     }
 
     private class WeatherForecast
