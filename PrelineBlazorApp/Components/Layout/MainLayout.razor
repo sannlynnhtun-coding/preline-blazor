@@ -1,23 +1,53 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JSRuntime
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div class="flex h-screen bg-gray-100">
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+    <!-- Left Sidebar -->
+    <aside id="hs-sidebar-header" class="hs-overlay [--auto-close:lg] lg:block lg:translate-x-0 lg:end-auto lg:bottom-0 w-64
+hs-overlay-open:translate-x-0
+-translate-x-full transition-all duration-300 transform
+h-full
+fixed lg:relative top-0 start-0 bottom-0 z-[60]
+bg-white border-e border-gray-200 dark:bg-neutral-800 dark:border-neutral-700" role="dialog" tabindex="-1" aria-label="Sidebar">
+        <div class="relative flex flex-col h-full max-h-full p-2">
+
+            <!-- Profile, Header, and Menu Components -->
+            <MainLayoutProfile />
+            <MainLayoutHeader />
+            <MainLayoutMenu />
         </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
+    </aside>
+    <!-- End Sidebar -->
+    <!-- Main Container -->
+    <main class="flex-1 p-6 overflow-auto">
+        <!-- Navigation Toggle -->
+        <div class="lg:hidden p-2">
+            <button type="button" class="flex justify-center items-center gap-x-3 size-8 text-sm text-gray-600 hover:bg-gray-100 rounded-full disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700 dark:hover:text-neutral-200 dark:focus:text-neutral-200" aria-haspopup="dialog" aria-expanded="false" aria-controls="hs-sidebar-header" aria-label="Toggle navigation" data-hs-overlay="#hs-sidebar-header">
+                <svg class="sm:hidden shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M15 3v18" /><path d="m8 9 3 3-3 3" /></svg>
+                <svg class="hidden sm:block shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M15 3v18" /><path d="m10 15-3-3 3-3" /></svg>
+                <span class="sr-only">Navigation Toggle</span>
+            </button>
+        </div>
+        <!-- End Navigation Toggle -->
+        @* <h1 class="text-2xl font-bold mb-4">Main Content</h1> *@
+        @Body
     </main>
+
 </div>
 
 <div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
+	An unhandled error has occurred.
+	<a href="" class="reload">Reload</a>
+	<a class="dismiss">🗙</a>
 </div>
+
+@code {
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			// await JSRuntime.InvokeVoidAsync("initializePreline");
+		}
+	}
+}
