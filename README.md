@@ -4,6 +4,10 @@ This guide will walk you through the steps to install and configure **Preline UI
 
 ---
 
+![Screenshot1](Screenshot1.png)
+![Screenshot2](Screenshot2.png)
+![Screenshot3](Screenshot3.png)
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
