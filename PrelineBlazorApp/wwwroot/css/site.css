@@ -16,6 +16,8 @@
     --text-muted: #64748b;
     --theme-accent: #334155;
     --theme-accent-soft: #e2e8f0;
+    --theme-accent-soft-strong: #cbd5e1;
+    --theme-on-accent: #ffffff;
   }
 
   .dark {
@@ -26,7 +28,9 @@
     --border-color: #1e293b;
     --text-strong: #e2e8f0;
     --text-muted: #94a3b8;
-    --theme-accent-soft: rgba(148, 163, 184, 0.35);
+    --theme-accent-soft: #1f2937;
+    --theme-accent-soft-strong: #334155;
+    --theme-on-accent: #ffffff;
   }
 
   * {
@@ -55,7 +59,7 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-transparent bg-[var(--theme-accent)] px-3 py-2 text-sm font-medium text-white transition hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)];
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-transparent bg-[var(--theme-accent)] px-3 py-2 text-sm font-medium text-[var(--theme-on-accent)] transition hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)];
   }
 
   .btn-secondary {
@@ -71,7 +75,7 @@
   }
 
   .menu-item-active {
-    @apply bg-[var(--theme-accent-soft)] text-[var(--text-strong)];
+    @apply bg-[var(--theme-accent-soft-strong)] text-[var(--text-strong)];
   }
 
   .menu-item-icon {
@@ -88,6 +92,10 @@
 
   .input-base {
     @apply block w-full rounded-lg border border-[var(--border-color)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-strong)] placeholder:text-[var(--text-muted)] focus:border-[var(--theme-accent)] focus:ring-[var(--theme-accent)];
+  }
+
+  .input-color {
+    @apply h-10 w-14 cursor-pointer rounded-lg border border-[var(--border-color)] bg-[var(--surface)] p-1;
   }
 
   .table-wrap {
@@ -138,5 +146,39 @@
 @layer components {
   .table-toolbar {
     @apply mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+}
+
+@layer components {
+  .settings-mode-card {
+    @apply flex flex-col items-start rounded-xl border border-[var(--border-color)] bg-[var(--surface)] px-3 py-3 text-left transition hover:bg-[var(--surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)];
+  }
+
+  .settings-mode-card-active {
+    @apply border-transparent bg-[var(--theme-accent-soft)] shadow-sm;
+  }
+
+  .settings-palette-card {
+    @apply inline-flex w-full items-center gap-3 rounded-xl border border-[var(--border-color)] bg-[var(--surface)] px-3 py-2.5 transition hover:bg-[var(--surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)];
+  }
+
+  .settings-palette-card-active {
+    @apply border-transparent bg-[var(--theme-accent-soft)] shadow-sm;
+  }
+
+  .settings-palette-swatch {
+    @apply inline-flex size-3.5 shrink-0 rounded-full border border-black/10;
+  }
+
+  .settings-preview-frame {
+    @apply rounded-xl border border-[var(--border-color)] bg-[var(--surface-subtle)] p-3;
+  }
+
+  .settings-preview-dot {
+    @apply inline-flex size-2 rounded-full bg-[var(--theme-accent)];
+  }
+
+  .settings-accent-chip {
+    @apply inline-flex items-center gap-2 rounded-md border border-transparent bg-[var(--theme-accent)] px-2 py-1 text-xs font-medium text-[var(--theme-on-accent)];
   }
 }

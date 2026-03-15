@@ -4,51 +4,98 @@
 
 <PageTitle>Settings</PageTitle>
 
-<PageHeading Title="Settings" Description="Configure global and per-page theme behavior for the dashboard." />
+<PageHeading Title="Theme Studio" Description="Configure workspace theme behavior with a faster, clearer workflow." />
 
 <div class="grid gap-4 xl:grid-cols-3">
-    <SectionCard Class="xl:col-span-2" Title="Appearance" Description="Default mode and palette applied across the workspace.">
-        <div class="grid gap-4 sm:grid-cols-2">
+    <SectionCard Class="xl:col-span-2" Title="Theme Controls" Description="Mode, preset palettes, and custom accents are applied instantly.">
+        <div class="space-y-6">
             <div>
-                <label class="label-base" for="settings-mode">Theme mode</label>
-                <select id="settings-mode" class="input-base" value="@Preference.Mode.ToString().ToLowerInvariant()" @onchange="OnModeChanged">
-                    <option value="system">System</option>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                </select>
+                <p class="label-base">Theme mode</p>
+                <div class="grid gap-2 sm:grid-cols-3">
+                    <button type="button" class="@GetModeClass(ThemeMode.System)" @onclick="() => SetMode(ThemeMode.System)">
+                        <span class="text-sm font-semibold">System</span>
+                        <span class="mt-1 text-xs text-[var(--text-muted)]">Follow OS appearance</span>
+                    </button>
+                    <button type="button" class="@GetModeClass(ThemeMode.Light)" @onclick="() => SetMode(ThemeMode.Light)">
+                        <span class="text-sm font-semibold">Light</span>
+                        <span class="mt-1 text-xs text-[var(--text-muted)]">Always use light mode</span>
+                    </button>
+                    <button type="button" class="@GetModeClass(ThemeMode.Dark)" @onclick="() => SetMode(ThemeMode.Dark)">
+                        <span class="text-sm font-semibold">Dark</span>
+                        <span class="mt-1 text-xs text-[var(--text-muted)]">Always use dark mode</span>
+                    </button>
+                </div>
             </div>
 
             <div>
-                <label class="label-base" for="settings-default-palette">Default palette</label>
-                <select id="settings-default-palette" class="input-base" value="@Preference.DefaultPalette" @onchange="OnDefaultPaletteChanged">
+                <div class="mb-2 flex items-center justify-between gap-2">
+                    <p class="label-base !mb-0">Preset palette</p>
+                    <button type="button" class="btn-ghost px-2 py-1 text-xs" @onclick="ResetDefaultPalette">Reset palette</button>
+                </div>
+
+                <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach (var palette in ThemePalettes.All)
                     {
-                        <option value="@palette.Key">@palette.Name</option>
+                        <button type="button" class="@GetPaletteClass(palette.Key, Preference.DefaultPalette)" @onclick="() => SetDefaultPalette(palette.Key)">
+                            <span class="settings-palette-swatch" style="background:@palette.AccentHex"></span>
+                            <span class="flex min-w-0 flex-col text-left">
+                                <span class="truncate text-sm font-semibold text-[var(--text-strong)]">@palette.Name</span>
+                                <span class="text-xs text-[var(--text-muted)]">@palette.AccentHex</span>
+                            </span>
+                        </button>
                     }
-                </select>
+                </div>
+            </div>
+
+            <div>
+                <div class="mb-2 flex items-center justify-between gap-2">
+                    <p class="label-base !mb-0">Custom default accent</p>
+                    <button type="button" class="btn-ghost px-2 py-1 text-xs" disabled="@string.IsNullOrWhiteSpace(Preference.DefaultCustomAccent)" @onclick="ResetDefaultCustomAccent">Clear custom</button>
+                </div>
+
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <input type="color" class="input-color" value="@DefaultColorPickerValue" @onchange="OnDefaultColorPicked" aria-label="Pick default accent color" />
+                    <input type="text" class="input-base sm:max-w-xs" value="@DefaultCustomAccentInput" placeholder="#334155" @oninput="OnDefaultCustomAccentInputChanged" />
+                    <button type="button" class="btn-secondary px-3 py-2 text-xs" @onclick="ApplyDefaultCustomAccent">Apply custom</button>
+                </div>
+                <p class="mt-2 text-xs text-[var(--text-muted)]">Custom color is validated as <code>#RRGGBB</code>. Invalid input is ignored and reset to the last valid value.</p>
+            </div>
+
+            <div class="rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] px-3 py-3 text-xs text-[var(--text-muted)]">
+                Precedence: <strong class="text-[var(--text-strong)]">page custom</strong>, then <strong class="text-[var(--text-strong)]">page palette</strong>, then <strong class="text-[var(--text-strong)]">global custom</strong>, then <strong class="text-[var(--text-strong)]">global palette</strong>, then <strong class="text-[var(--text-strong)]">slate fallback</strong>.
             </div>
         </div>
-        <p class="mt-3 text-xs text-[var(--text-muted)]">Precedence: page override, then global default, then system fallback.</p>
     </SectionCard>
 
-    <SectionCard Title="Palette Preview" Description="Quick swatches of available palette accents.">
-        <ul class="space-y-2">
-            @foreach (var palette in ThemePalettes.All)
-            {
-                <li class="flex items-center justify-between rounded-lg border border-[var(--border-color)] px-3 py-2">
-                    <span class="text-sm text-[var(--text-strong)]">@palette.Name</span>
-                    <span class="h-4 w-10 rounded-md" style="background:@palette.AccentHex"></span>
-                </li>
-            }
-        </ul>
+    <SectionCard Title="Live Preview" Description="Quick sample using your current mode and effective theme.">
+        <div class="space-y-3">
+            <div class="settings-preview-frame">
+                <div class="mb-3 flex items-center justify-between">
+                    <span class="text-xs uppercase tracking-wide text-[var(--text-muted)]">Current profile</span>
+                    <span class="settings-accent-chip">
+                        <span class="settings-preview-dot"></span>@CurrentThemeLabel
+                    </span>
+                </div>
+                <h3 class="text-sm font-semibold text-[var(--text-strong)]">Theme preview card</h3>
+                <p class="mt-1 text-xs text-[var(--text-muted)]">Mode: @Preference.Mode · Accent: @CurrentAccentHex</p>
+                <div class="mt-3 flex gap-2">
+                    <button type="button" class="btn-primary px-2.5 py-1.5 text-xs">Primary</button>
+                    <button type="button" class="btn-secondary px-2.5 py-1.5 text-xs">Secondary</button>
+                </div>
+            </div>
+
+            <div class="rounded-lg border border-[var(--border-color)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--text-muted)]">
+                @TotalOverrideCount override(s) configured across pages.
+            </div>
+        </div>
     </SectionCard>
 </div>
 
 <div class="mt-4">
-    <SectionCard Title="Page Overrides" Description="Customize accent palette for specific routes.">
+    <SectionCard Title="Page Overrides" Description="Set per-page palette and optional custom accent. Custom color wins when both are set.">
         <TableControls SearchTerm="@Query.SearchTerm"
                        SearchTermChanged="OnSearchChanged"
-                       SearchPlaceholder="Search page title or route..."
+                       SearchPlaceholder="Search page title, route, or section..."
                        FilteredCount="@FilteredPages.Count"
                        CurrentPage="@Query.CurrentPage"
                        PageSize="@Query.PageSize"
@@ -57,37 +104,79 @@
                        PageSizeChanged="OnPageSizeChanged"
                        ResultLabel="pages" />
 
+        <div class="mb-3 flex justify-end">
+            <button type="button" class="btn-ghost px-2 py-1 text-xs" disabled="@(TotalOverrideCount == 0)" @onclick="ClearAllOverrides">
+                Clear all overrides
+            </button>
+        </div>
+
         <div class="table-wrap">
             <table class="table-base">
                 <thead>
                     <tr>
                         <th>Page</th>
                         <th>Route</th>
-                        <th>Palette Override</th>
+                        <th>Active Theme</th>
+                        <th>Overrides</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (PagedPages.Count == 0)
                     {
                         <tr>
-                            <td colspan="3" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No pages match your search.</td>
+                            <td colspan="4" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No pages match your search.</td>
                         </tr>
                     }
                     else
                     {
                         @foreach (var navPage in PagedPages)
                         {
+                            var route = navPage.Href;
+                            var paletteOverride = GetPagePalette(route);
+                            var customOverride = GetPageCustomAccent(route);
+                            var effectiveAccent = GetEffectiveAccent(route);
+                            var activeLabel = GetEffectiveThemeLabel(route);
+
                             <tr>
-                                <td>@navPage.Title</td>
-                                <td class="font-mono text-xs">@navPage.Href</td>
                                 <td>
-                                    <select class="input-base py-1 text-sm" value="@GetPagePalette(navPage.Href)" @onchange="(e) => OnPagePaletteChanged(navPage.Href, e)">
-                                        <option value="">Use default</option>
-                                        @foreach (var palette in ThemePalettes.All)
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-medium text-[var(--text-strong)]">@navPage.Title</p>
+                                        <p class="truncate text-xs text-[var(--text-muted)]">@navPage.Section</p>
+                                    </div>
+                                </td>
+                                <td class="font-mono text-xs">@route</td>
+                                <td>
+                                    <span class="inline-flex items-center gap-2 text-xs text-[var(--text-strong)]">
+                                        <span class="settings-palette-swatch !size-2.5" style="background:@effectiveAccent"></span>
+                                        @activeLabel
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="flex min-w-[20rem] flex-wrap items-center gap-2">
+                                        <select class="input-base min-w-36 py-1 text-sm" value="@paletteOverride" @onchange="(e) => OnPagePaletteChanged(route, e)">
+                                            <option value="">Use global</option>
+                                            @foreach (var palette in ThemePalettes.All)
+                                            {
+                                                <option value="@palette.Key">@palette.Name</option>
+                                            }
+                                        </select>
+
+                                        <input type="color" class="input-color" value="@GetRouteColorPickerValue(route, effectiveAccent)" @onchange="(e) => OnRouteColorPicked(route, e)" aria-label="Pick route custom color" />
+
+                                        <input type="text" class="input-base min-w-32 py-1 text-xs" value="@GetRouteAccentInput(route, effectiveAccent)" placeholder="#334155" @oninput="(e) => OnRouteAccentInputChanged(route, e)" />
+
+                                        <button type="button" class="btn-secondary px-2 py-1 text-xs" @onclick="() => ApplyRouteCustomAccent(route)">Apply</button>
+
+                                        @if (!string.IsNullOrWhiteSpace(customOverride))
                                         {
-                                            <option value="@palette.Key">@palette.Name</option>
+                                            <button type="button" class="btn-ghost px-2 py-1 text-xs" @onclick="() => ClearRouteCustomAccent(route)">Clear custom</button>
                                         }
-                                    </select>
+
+                                        @if (!string.IsNullOrWhiteSpace(customOverride) || !string.IsNullOrWhiteSpace(paletteOverride))
+                                        {
+                                            <button type="button" class="btn-ghost px-2 py-1 text-xs" @onclick="() => ClearRouteOverride(route)">Use global</button>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -100,7 +189,22 @@
 
 @code {
     private readonly TableQueryState Query = new() { PageSize = 5, PageSizeOptions = [5, 10, 20] };
+    private readonly Dictionary<string, string> _routeAccentInputs = new(StringComparer.OrdinalIgnoreCase);
+
     private ThemePreference Preference { get; set; } = ThemePreference.CreateDefault();
+    private string DefaultCustomAccentInput { get; set; } = string.Empty;
+
+    private string CurrentThemeLabel => string.IsNullOrWhiteSpace(Preference.DefaultCustomAccent)
+        ? GetPaletteName(Preference.DefaultPalette)
+        : $"Custom {Preference.DefaultCustomAccent}";
+
+    private string CurrentAccentHex => GetEffectiveAccent("/settings");
+
+    private string DefaultColorPickerValue => NormalizeHexColor(DefaultCustomAccentInput)
+        ?? NormalizeHexColor(Preference.DefaultCustomAccent)
+        ?? GetPaletteAccent(Preference.DefaultPalette);
+
+    private int TotalOverrideCount => Preference.PagePaletteOverrides.Count + Preference.PageCustomAccentOverrides.Count;
 
     private IReadOnlyList<NavItem> FilteredPages => Navigation.Menu
         .Where(PageMatches)
@@ -111,6 +215,8 @@
         get
         {
             var filtered = FilteredPages;
+            Query.ClampPage(filtered.Count);
+
             return filtered
                 .Skip((Query.CurrentPage - 1) * Query.PageSize)
                 .Take(Query.PageSize)
@@ -126,6 +232,7 @@
         }
 
         Preference = await ThemeService.GetAsync();
+        DefaultCustomAccentInput = Preference.DefaultCustomAccent ?? GetPaletteAccent(Preference.DefaultPalette);
         await ThemeService.ApplyAsync("/settings");
         StateHasChanged();
     }
@@ -164,26 +271,65 @@
             || page.Description.Contains(q, StringComparison.OrdinalIgnoreCase);
     }
 
-    private async Task OnModeChanged(ChangeEventArgs args)
+    private async Task SetMode(ThemeMode mode)
     {
-        var value = args.Value?.ToString()?.ToLowerInvariant() ?? "system";
-        var mode = value switch
-        {
-            "light" => ThemeMode.Light,
-            "dark" => ThemeMode.Dark,
-            _ => ThemeMode.System
-        };
-
         await ThemeService.SetModeAsync(mode);
         Preference.Mode = mode;
         await ThemeService.ApplyAsync("/settings");
     }
 
-    private async Task OnDefaultPaletteChanged(ChangeEventArgs args)
+    private async Task SetDefaultPalette(string palette)
     {
-        var palette = args.Value?.ToString() ?? ThemePreference.CreateDefault().DefaultPalette;
         await ThemeService.SetDefaultPaletteAsync(palette);
         Preference.DefaultPalette = palette;
+        await ThemeService.ApplyAsync("/settings");
+    }
+
+    private Task ResetDefaultPalette()
+    {
+        return SetDefaultPalette(ThemePreference.CreateDefault().DefaultPalette);
+    }
+
+    private Task OnDefaultCustomAccentInputChanged(ChangeEventArgs args)
+    {
+        DefaultCustomAccentInput = args.Value?.ToString() ?? string.Empty;
+        return Task.CompletedTask;
+    }
+
+    private async Task OnDefaultColorPicked(ChangeEventArgs args)
+    {
+        var normalized = NormalizeHexColor(args.Value?.ToString());
+        if (normalized is null)
+        {
+            return;
+        }
+
+        await SetDefaultCustomAccent(normalized);
+    }
+
+    private async Task ApplyDefaultCustomAccent()
+    {
+        var normalized = NormalizeHexColor(DefaultCustomAccentInput);
+        if (normalized is null)
+        {
+            DefaultCustomAccentInput = Preference.DefaultCustomAccent ?? GetPaletteAccent(Preference.DefaultPalette);
+            return;
+        }
+
+        await SetDefaultCustomAccent(normalized);
+    }
+
+    private async Task ResetDefaultCustomAccent()
+    {
+        await SetDefaultCustomAccent(null);
+    }
+
+    private async Task SetDefaultCustomAccent(string? color)
+    {
+        var normalized = NormalizeHexColor(color);
+        await ThemeService.SetDefaultCustomAccentAsync(normalized);
+        Preference.DefaultCustomAccent = normalized;
+        DefaultCustomAccentInput = normalized ?? GetPaletteAccent(Preference.DefaultPalette);
         await ThemeService.ApplyAsync("/settings");
     }
 
@@ -208,9 +354,206 @@
         await ThemeService.ApplyAsync("/settings");
     }
 
+    private Task OnRouteAccentInputChanged(string route, ChangeEventArgs args)
+    {
+        _routeAccentInputs[route] = args.Value?.ToString() ?? string.Empty;
+        return Task.CompletedTask;
+    }
+
+    private async Task OnRouteColorPicked(string route, ChangeEventArgs args)
+    {
+        var normalized = NormalizeHexColor(args.Value?.ToString());
+        if (normalized is null)
+        {
+            return;
+        }
+
+        await SetRouteCustomAccent(route, normalized);
+    }
+
+    private async Task ApplyRouteCustomAccent(string route)
+    {
+        var input = _routeAccentInputs.TryGetValue(route, out var value) ? value : string.Empty;
+        var normalized = NormalizeHexColor(input);
+        if (normalized is null)
+        {
+            _routeAccentInputs[route] = GetPageCustomAccent(route) ?? GetEffectiveAccent(route);
+            return;
+        }
+
+        await SetRouteCustomAccent(route, normalized);
+    }
+
+    private async Task ClearRouteCustomAccent(string route)
+    {
+        await SetRouteCustomAccent(route, null);
+    }
+
+    private async Task SetRouteCustomAccent(string route, string? color)
+    {
+        var normalized = NormalizeHexColor(color);
+        await ThemeService.SetPageCustomAccentAsync(route, normalized);
+
+        if (normalized is null)
+        {
+            Preference.PageCustomAccentOverrides.Remove(route);
+            _routeAccentInputs.Remove(route);
+        }
+        else
+        {
+            Preference.PageCustomAccentOverrides[route] = normalized;
+            _routeAccentInputs[route] = normalized;
+        }
+
+        await ThemeService.ApplyAsync("/settings");
+    }
+
+    private async Task ClearRouteOverride(string route)
+    {
+        await ThemeService.SetPagePaletteAsync(route, null);
+        await ThemeService.SetPageCustomAccentAsync(route, null);
+
+        Preference.PagePaletteOverrides.Remove(route);
+        Preference.PageCustomAccentOverrides.Remove(route);
+        _routeAccentInputs.Remove(route);
+
+        await ThemeService.ApplyAsync("/settings");
+    }
+
+    private async Task ClearAllOverrides()
+    {
+        var routeKeys = Preference.PagePaletteOverrides.Keys
+            .Concat(Preference.PageCustomAccentOverrides.Keys)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        foreach (var route in routeKeys)
+        {
+            await ThemeService.SetPagePaletteAsync(route, null);
+            await ThemeService.SetPageCustomAccentAsync(route, null);
+        }
+
+        Preference.PagePaletteOverrides.Clear();
+        Preference.PageCustomAccentOverrides.Clear();
+        _routeAccentInputs.Clear();
+
+        await ThemeService.ApplyAsync("/settings");
+    }
+
     private string GetPagePalette(string route)
     {
         return Preference.PagePaletteOverrides.TryGetValue(route, out var value) ? value : string.Empty;
     }
-}
 
+    private string? GetPageCustomAccent(string route)
+    {
+        return Preference.PageCustomAccentOverrides.TryGetValue(route, out var value) ? value : null;
+    }
+
+    private string GetPaletteName(string key)
+    {
+        return ThemePalettes.All.FirstOrDefault(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase))?.Name ?? "Unknown";
+    }
+
+    private string GetPaletteAccent(string key)
+    {
+        return ThemePalettes.All.FirstOrDefault(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase))?.AccentHex ?? "#334155";
+    }
+
+    private string GetEffectiveAccent(string route)
+    {
+        if (Preference.PageCustomAccentOverrides.TryGetValue(route, out var routeCustom))
+        {
+            return routeCustom;
+        }
+
+        if (Preference.PagePaletteOverrides.TryGetValue(route, out var routePalette))
+        {
+            return GetPaletteAccent(routePalette);
+        }
+
+        if (!string.IsNullOrWhiteSpace(Preference.DefaultCustomAccent))
+        {
+            return Preference.DefaultCustomAccent;
+        }
+
+        return GetPaletteAccent(Preference.DefaultPalette);
+    }
+
+    private string GetEffectiveThemeLabel(string route)
+    {
+        if (Preference.PageCustomAccentOverrides.TryGetValue(route, out var routeCustom))
+        {
+            return $"Custom {routeCustom}";
+        }
+
+        if (Preference.PagePaletteOverrides.TryGetValue(route, out var routePalette))
+        {
+            return $"Palette {GetPaletteName(routePalette)}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(Preference.DefaultCustomAccent))
+        {
+            return $"Global custom {Preference.DefaultCustomAccent}";
+        }
+
+        return $"Global {GetPaletteName(Preference.DefaultPalette)}";
+    }
+
+    private string GetRouteColorPickerValue(string route, string fallbackAccent)
+    {
+        return NormalizeHexColor(GetRouteAccentInput(route, fallbackAccent)) ?? fallbackAccent;
+    }
+
+    private string GetRouteAccentInput(string route, string fallbackAccent)
+    {
+        if (_routeAccentInputs.TryGetValue(route, out var value) && !string.IsNullOrWhiteSpace(value))
+        {
+            return value;
+        }
+
+        return GetPageCustomAccent(route) ?? fallbackAccent;
+    }
+
+    private string GetModeClass(ThemeMode mode)
+    {
+        var selected = Preference.Mode == mode;
+        return selected
+            ? "settings-mode-card settings-mode-card-active"
+            : "settings-mode-card";
+    }
+
+    private string GetPaletteClass(string key, string current)
+    {
+        var selected = key.Equals(current, StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(Preference.DefaultCustomAccent);
+        return selected
+            ? "settings-palette-card settings-palette-card-active"
+            : "settings-palette-card";
+    }
+
+    private static string? NormalizeHexColor(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return null;
+        }
+
+        var value = input.Trim();
+        if (!value.StartsWith('#'))
+        {
+            value = "#" + value;
+        }
+
+        if (value.Length == 4)
+        {
+            value = $"#{value[1]}{value[1]}{value[2]}{value[2]}{value[3]}{value[3]}";
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(value, "^#[0-9a-fA-F]{6}$"))
+        {
+            return null;
+        }
+
+        return value.ToLowerInvariant();
+    }
+}

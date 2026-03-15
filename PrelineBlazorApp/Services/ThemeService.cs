@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.JSInterop;
 using PrelineBlazorApp.Models.Theme;
 
@@ -5,6 +6,8 @@ namespace PrelineBlazorApp.Services;
 
 public sealed class ThemeService(IJSRuntime jsRuntime) : IThemeService
 {
+    private static readonly Regex HexColorRegex = new("^#[0-9a-fA-F]{6}$", RegexOptions.Compiled);
+
     private ThemePreference? _cachedPreference;
 
     public async Task<ThemePreference> GetAsync()
@@ -28,8 +31,17 @@ public sealed class ThemeService(IJSRuntime jsRuntime) : IThemeService
             palette = ThemePreference.CreateDefault().DefaultPalette;
         }
 
-        _cachedPreference!.DefaultPalette = palette;
-        await SafeInvokeAsync("dashboardTheme.setDefaultPalette", palette);
+        var normalized = palette.ToLowerInvariant();
+        _cachedPreference!.DefaultPalette = normalized;
+        await SafeInvokeAsync("dashboardTheme.setDefaultPalette", normalized);
+    }
+
+    public async Task SetDefaultCustomAccentAsync(string? hexColor)
+    {
+        await EnsureLoadedAsync();
+        var normalized = NormalizeHexColor(hexColor);
+        _cachedPreference!.DefaultCustomAccent = normalized;
+        await SafeInvokeAsync("dashboardTheme.setDefaultCustomAccent", normalized);
     }
 
     public async Task SetPagePaletteAsync(string route, string? palette)
@@ -53,6 +65,24 @@ public sealed class ThemeService(IJSRuntime jsRuntime) : IThemeService
         }
 
         await SafeInvokeAsync("dashboardTheme.setPagePalette", normalizedRoute, valueToApply);
+    }
+
+    public async Task SetPageCustomAccentAsync(string route, string? hexColor)
+    {
+        await EnsureLoadedAsync();
+        var normalizedRoute = NormalizeRoute(route);
+        var normalized = NormalizeHexColor(hexColor);
+
+        if (normalized is null)
+        {
+            _cachedPreference!.PageCustomAccentOverrides.Remove(normalizedRoute);
+        }
+        else
+        {
+            _cachedPreference!.PageCustomAccentOverrides[normalizedRoute] = normalized;
+        }
+
+        await SafeInvokeAsync("dashboardTheme.setPageCustomAccent", normalizedRoute, normalized);
     }
 
     public async Task ApplyAsync(string route)
@@ -79,6 +109,16 @@ public sealed class ThemeService(IJSRuntime jsRuntime) : IThemeService
         }
 
         _cachedPreference ??= ThemePreference.CreateDefault();
+
+        _cachedPreference.PagePaletteOverrides = _cachedPreference.PagePaletteOverrides is null
+            ? new(StringComparer.OrdinalIgnoreCase)
+            : new Dictionary<string, string>(_cachedPreference.PagePaletteOverrides, StringComparer.OrdinalIgnoreCase);
+
+        _cachedPreference.PageCustomAccentOverrides = _cachedPreference.PageCustomAccentOverrides is null
+            ? new(StringComparer.OrdinalIgnoreCase)
+            : new Dictionary<string, string>(_cachedPreference.PageCustomAccentOverrides, StringComparer.OrdinalIgnoreCase);
+
+        _cachedPreference.DefaultCustomAccent = NormalizeHexColor(_cachedPreference.DefaultCustomAccent);
     }
 
     private async Task SafeInvokeAsync(string identifier, params object?[]? args)
@@ -114,5 +154,30 @@ public sealed class ThemeService(IJSRuntime jsRuntime) : IThemeService
 
         return normalized.TrimEnd('/') is { Length: > 0 } value ? value : "/";
     }
-}
 
+    private static string? NormalizeHexColor(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return null;
+        }
+
+        var value = input.Trim();
+        if (!value.StartsWith('#'))
+        {
+            value = "#" + value;
+        }
+
+        if (value.Length == 4)
+        {
+            value = $"#{value[1]}{value[1]}{value[2]}{value[2]}{value[3]}{value[3]}";
+        }
+
+        if (!HexColorRegex.IsMatch(value))
+        {
+            return null;
+        }
+
+        return value.ToLowerInvariant();
+    }
+}
