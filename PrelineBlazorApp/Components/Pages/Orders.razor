@@ -5,7 +5,7 @@
 
 <PageHeading Title="Orders" Description="Current order queue and fulfilment state." />
 
-<SectionCard Title="Order List" Description="Recent orders and their processing stage.">
+<UiCard Title="Order List" Description="Recent orders and their processing stage.">
     <TableControls SearchTerm="@Query.SearchTerm"
                    SearchTermChanged="OnSearchChanged"
                    SearchPlaceholder="Search order, customer, amount, status..."
@@ -17,45 +17,40 @@
                    PageSizeChanged="OnPageSizeChanged"
                    ResultLabel="orders" />
 
-    <div class="table-wrap">
-        <table class="table-base">
-            <thead>
+    <UiTable Header="@HeaderTemplate">
+        @if (PagedOrders.Count == 0)
+        {
+            <tr>
+                <td colspan="5" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No orders match your search.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var order in PagedOrders)
+            {
                 <tr>
-                    <th>Order</th>
-                    <th>Customer</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Created</th>
+                    <td>@order.OrderNo</td>
+                    <td>@order.Customer</td>
+                    <td>@order.Amount</td>
+                    <td><UiBadge Text="@order.Status" Tone="@ToneForStatus(order.Status)" /></td>
+                    <td>@order.CreatedOn.ToString("MMM dd, yyyy")</td>
                 </tr>
-            </thead>
-            <tbody>
-                @if (PagedOrders.Count == 0)
-                {
-                    <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No orders match your search.</td>
-                    </tr>
-                }
-                else
-                {
-                    @foreach (var order in PagedOrders)
-                    {
-                        <tr>
-                            <td>@order.OrderNo</td>
-                            <td>@order.Customer</td>
-                            <td>@order.Amount</td>
-                            <td><StatusBadge Text="@order.Status" Tone="@ToneForStatus(order.Status)" /></td>
-                            <td>@order.CreatedOn.ToString("MMM dd, yyyy")</td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
-</SectionCard>
+            }
+        }
+    </UiTable>
+</UiCard>
 
 @code {
     private readonly TableQueryState Query = new();
     private IReadOnlyList<OrderRow> OrderList { get; set; } = [];
+
+    private RenderFragment HeaderTemplate => @<tr>
+        <th>Order</th>
+        <th>Customer</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Created</th>
+    </tr>;
 
     private IReadOnlyList<OrderRow> FilteredOrders => OrderList
         .Where(OrderMatches)
@@ -66,6 +61,7 @@
         get
         {
             var filtered = FilteredOrders;
+            Query.ClampPage(filtered.Count);
             return filtered
                 .Skip((Query.CurrentPage - 1) * Query.PageSize)
                 .Take(Query.PageSize)
@@ -112,13 +108,12 @@
             || order.Status.Contains(q, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string ToneForStatus(string status) => status.ToLowerInvariant() switch
+    private static UiTone ToneForStatus(string status) => status.ToLowerInvariant() switch
     {
-        "fulfilled" => "success",
-        "processing" => "info",
-        "pending" => "warning",
-        "cancelled" => "danger",
-        _ => "neutral"
+        "fulfilled" => UiTone.Success,
+        "processing" => UiTone.Info,
+        "pending" => UiTone.Warning,
+        "cancelled" => UiTone.Danger,
+        _ => UiTone.Neutral
     };
 }
-

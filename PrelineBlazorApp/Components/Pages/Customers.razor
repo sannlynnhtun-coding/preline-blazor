@@ -5,7 +5,7 @@
 
 <PageHeading Title="Customers" Description="Segmented customer health and recurring revenue impact." />
 
-<SectionCard Title="Customer Accounts" Description="Top accounts with current revenue state.">
+<UiCard Title="Customer Accounts" Description="Top accounts with current revenue state.">
     <TableControls SearchTerm="@Query.SearchTerm"
                    SearchTermChanged="OnSearchChanged"
                    SearchPlaceholder="Search customer, email, segment, MRR, status..."
@@ -17,45 +17,40 @@
                    PageSizeChanged="OnPageSizeChanged"
                    ResultLabel="customers" />
 
-    <div class="table-wrap">
-        <table class="table-base">
-            <thead>
+    <UiTable Header="@HeaderTemplate">
+        @if (PagedCustomers.Count == 0)
+        {
+            <tr>
+                <td colspan="5" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No customers match your search.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var customer in PagedCustomers)
+            {
                 <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Segment</th>
-                    <th>MRR</th>
-                    <th>Status</th>
+                    <td>@customer.Name</td>
+                    <td>@customer.Email</td>
+                    <td>@customer.Segment</td>
+                    <td>@customer.Mrr</td>
+                    <td><UiBadge Text="@customer.Status" Tone="@ToneForStatus(customer.Status)" /></td>
                 </tr>
-            </thead>
-            <tbody>
-                @if (PagedCustomers.Count == 0)
-                {
-                    <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No customers match your search.</td>
-                    </tr>
-                }
-                else
-                {
-                    @foreach (var customer in PagedCustomers)
-                    {
-                        <tr>
-                            <td>@customer.Name</td>
-                            <td>@customer.Email</td>
-                            <td>@customer.Segment</td>
-                            <td>@customer.Mrr</td>
-                            <td><StatusBadge Text="@customer.Status" Tone="@ToneForStatus(customer.Status)" /></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
-</SectionCard>
+            }
+        }
+    </UiTable>
+</UiCard>
 
 @code {
     private readonly TableQueryState Query = new();
     private IReadOnlyList<CustomerRow> CustomerList { get; set; } = [];
+
+    private RenderFragment HeaderTemplate => @<tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Segment</th>
+        <th>MRR</th>
+        <th>Status</th>
+    </tr>;
 
     private IReadOnlyList<CustomerRow> FilteredCustomers => CustomerList
         .Where(CustomerMatches)
@@ -66,6 +61,7 @@
         get
         {
             var filtered = FilteredCustomers;
+            Query.ClampPage(filtered.Count);
             return filtered
                 .Skip((Query.CurrentPage - 1) * Query.PageSize)
                 .Take(Query.PageSize)
@@ -113,12 +109,11 @@
             || customer.Status.Contains(q, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string ToneForStatus(string status) => status.ToLowerInvariant() switch
+    private static UiTone ToneForStatus(string status) => status.ToLowerInvariant() switch
     {
-        "healthy" => "success",
-        "new" => "info",
-        "at risk" => "warning",
-        _ => "neutral"
+        "healthy" => UiTone.Success,
+        "new" => UiTone.Info,
+        "at risk" => UiTone.Warning,
+        _ => UiTone.Neutral
     };
 }
-

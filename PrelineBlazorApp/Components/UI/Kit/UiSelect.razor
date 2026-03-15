@@ -1,0 +1,38 @@
+<select id="@Id"
+        class="@CssClass"
+        disabled="@Disabled"
+        value="@Value"
+        aria-label="@AriaLabel"
+        @onchange="HandleChange"
+        @attributes="AdditionalAttributes">
+    @if (Options.Count > 0)
+    {
+        @foreach (var option in Options)
+        {
+            <option value="@option.Value" disabled="@option.Disabled">@option.Label</option>
+        }
+    }
+    else if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+</select>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public IReadOnlyList<UiSelectOption> Options { get; set; } = [];
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass => string.Join(" ", new[] { "ui-select", Class }.Where(static x => !string.IsNullOrWhiteSpace(x)));
+
+    private Task HandleChange(ChangeEventArgs args)
+    {
+        return ValueChanged.InvokeAsync(args.Value?.ToString());
+    }
+}

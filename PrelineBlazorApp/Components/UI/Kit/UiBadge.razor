@@ -1,0 +1,33 @@
+<span id="@Id" class="@CssClass" @attributes="AdditionalAttributes">
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        @Text
+    }
+</span>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+    [Parameter] public string Text { get; set; } = string.Empty;
+    [Parameter] public UiTone Tone { get; set; } = UiTone.Neutral;
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass => string.Join(" ", new[]
+    {
+        "ui-badge",
+        Tone switch
+        {
+            UiTone.Success => "ui-badge-success",
+            UiTone.Warning => "ui-badge-warning",
+            UiTone.Danger => "ui-badge-danger",
+            UiTone.Info => "ui-badge-info",
+            _ => "ui-badge-neutral"
+        },
+        Class
+    }.Where(static x => !string.IsNullOrWhiteSpace(x)));
+}

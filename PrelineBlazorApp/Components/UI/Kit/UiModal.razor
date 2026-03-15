@@ -1,0 +1,94 @@
+@inject IJSRuntime JS
+
+@if (IsOpen)
+{
+    <div class="ui-overlay-backdrop" @onclick="HandleBackdropClick"></div>
+    <div id="@Id"
+         class="ui-modal"
+         tabindex="-1"
+         role="dialog"
+         aria-label="@Title"
+         @onkeydown="HandleKeyDown"
+         @attributes="AdditionalAttributes">
+        <div class="ui-modal-dialog @GetPlacementClass()" @onclick:stopPropagation>
+            <div class="ui-modal-content">
+                <div class="ui-modal-header">
+                    <h3 class="text-sm font-semibold text-[var(--text-strong)]">@Title</h3>
+                    <UiButton Variant="UiVariant.Ghost" Size="UiSize.Sm" Class="px-2 py-1" OnClick="@(_ => Close())">Close</UiButton>
+                </div>
+                <div class="ui-modal-body">
+                    @ChildContent
+                </div>
+                @if (Footer is not null)
+                {
+                    <div class="ui-modal-footer">
+                        @Footer
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = $"ui-modal-{Guid.NewGuid():N}";
+    [Parameter] public string Title { get; set; } = "Dialog";
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public bool CloseOnBackdrop { get; set; } = true;
+    [Parameter] public bool CloseOnEscape { get; set; } = true;
+    [Parameter] public UiPlacement Placement { get; set; } = UiPlacement.Center;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsOpen)
+        {
+            await JS.InvokeVoidAsync("uiKit.focusFirst", Id);
+            await JS.InvokeVoidAsync("uiKit.trapFocus", Id);
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("uiKit.releaseFocusTrap", Id);
+        }
+    }
+
+    private async Task HandleBackdropClick()
+    {
+        if (!CloseOnBackdrop)
+        {
+            return;
+        }
+
+        await Close();
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (CloseOnEscape && args.Key == "Escape")
+        {
+            await Close();
+        }
+    }
+    private async Task Close()
+    {
+        await IsOpenChanged.InvokeAsync(false);
+        await JS.InvokeVoidAsync("uiKit.releaseFocusTrap", Id);
+        await OnClose.InvokeAsync();
+    }
+
+    private string GetPlacementClass() => Placement switch
+    {
+        UiPlacement.Top => "ui-modal-dialog-top",
+        UiPlacement.Bottom => "ui-modal-dialog-bottom",
+        UiPlacement.Start => "ui-modal-dialog-start",
+        UiPlacement.End => "ui-modal-dialog-end",
+        _ => "ui-modal-dialog-center"
+    };
+}
+
+
+

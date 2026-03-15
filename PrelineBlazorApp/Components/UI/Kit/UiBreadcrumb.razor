@@ -1,0 +1,23 @@
+<nav class="ui-breadcrumb" aria-label="Breadcrumb">
+    <ol>
+        @for (var index = 0; index < Items.Count; index++)
+        {
+            var item = Items[index];
+            var isLast = index == Items.Count - 1;
+            <li>
+                @if (!isLast && !string.IsNullOrWhiteSpace(item.Href))
+                {
+                    <a href="@item.Href">@item.Title</a>
+                }
+                else
+                {
+                    <span>@item.Title</span>
+                }
+            </li>
+        }
+    </ol>
+</nav>
+
+@code {
+    [Parameter] public IReadOnlyList<BreadcrumbItem> Items { get; set; } = [];
+}

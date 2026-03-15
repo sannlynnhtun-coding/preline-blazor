@@ -2,105 +2,243 @@
 
 <PageTitle>Components</PageTitle>
 
-<PageHeading Title="Components Showcase" Description="Reusable shadcn-inspired surfaces built with Tailwind + Preline interactions." />
+<PageHeading Title="UI Kit Catalog" Description="Bootstrap-inspired reusable Blazor components built on theme-aware tokens." />
 
 <div class="grid gap-4 xl:grid-cols-2">
-    <SectionCard Title="Buttons" Description="Primary and secondary action patterns.">
+    <UiCard Title="Buttons" Description="Variants, sizes, loading, and disabled states.">
         <div class="flex flex-wrap gap-2">
-            <button class="btn-primary">Primary</button>
-            <button class="btn-secondary">Secondary</button>
-            <button class="btn-ghost">Ghost</button>
+            <UiButton Variant="UiVariant.Primary">Primary</UiButton>
+            <UiButton Variant="UiVariant.Secondary">Secondary</UiButton>
+            <UiButton Variant="UiVariant.Success">Success</UiButton>
+            <UiButton Variant="UiVariant.Warning">Warning</UiButton>
+            <UiButton Variant="UiVariant.Danger">Danger</UiButton>
+            <UiButton Variant="UiVariant.Info">Info</UiButton>
+            <UiButton Variant="UiVariant.Ghost">Ghost</UiButton>
+            <UiButton Variant="UiVariant.Link">Link</UiButton>
+            <UiButton Variant="UiVariant.Primary" Loading="true">Saving</UiButton>
         </div>
-    </SectionCard>
+    </UiCard>
 
-    <SectionCard Title="Badges" Description="Semantic status badges.">
+    <UiCard Title="Badges + Alerts" Description="Semantic tones for statuses and feedback.">
         <div class="flex flex-wrap gap-2">
-            <StatusBadge Text="Success" Tone="success" />
-            <StatusBadge Text="Warning" Tone="warning" />
-            <StatusBadge Text="Danger" Tone="danger" />
-            <StatusBadge Text="Info" Tone="info" />
-            <StatusBadge Text="Neutral" Tone="neutral" />
+            <UiBadge Text="Neutral" Tone="UiTone.Neutral" />
+            <UiBadge Text="Success" Tone="UiTone.Success" />
+            <UiBadge Text="Warning" Tone="UiTone.Warning" />
+            <UiBadge Text="Danger" Tone="UiTone.Danger" />
+            <UiBadge Text="Info" Tone="UiTone.Info" />
         </div>
-    </SectionCard>
+        <div class="mt-3 space-y-2">
+            <UiAlert Tone="UiTone.Info" Title="Heads up">This is an informational alert.</UiAlert>
+            <UiAlert Tone="UiTone.Success" Title="Saved" Dismissible="true">Your settings were updated.</UiAlert>
+        </div>
+    </UiCard>
 </div>
 
 <div class="mt-4 grid gap-4 xl:grid-cols-3">
-    <SectionCard Class="xl:col-span-2" Title="Tabs + Input" Description="Preline tabs with form controls.">
-        <nav class="mb-4 flex gap-2" role="tablist" aria-label="Tabs" data-hs-tab>
-            <button type="button" class="hs-tab-active:border-[var(--theme-accent)] hs-tab-active:text-[var(--theme-accent)] rounded-md border border-transparent px-3 py-1.5 text-sm text-[var(--text-muted)]" id="components-tab-1" data-hs-tab="#components-panel-1" aria-controls="components-panel-1" role="tab">Profile</button>
-            <button type="button" class="hs-tab-active:border-[var(--theme-accent)] hs-tab-active:text-[var(--theme-accent)] rounded-md border border-transparent px-3 py-1.5 text-sm text-[var(--text-muted)]" id="components-tab-2" data-hs-tab="#components-panel-2" aria-controls="components-panel-2" role="tab">Security</button>
-        </nav>
-        <div id="components-panel-1" role="tabpanel" aria-labelledby="components-tab-1">
-            <div class="grid gap-3 sm:grid-cols-2">
-                <div>
-                    <label class="label-base" for="component-name">Display name</label>
-                    <input id="component-name" class="input-base" type="text" value="Operations Team" />
-                </div>
-                <div>
-                    <label class="label-base" for="component-region">Region</label>
-                    <select id="component-region" class="input-base">
-                        <option>Global</option>
-                        <option>US</option>
-                        <option>EMEA</option>
-                    </select>
-                </div>
+    <UiCard Class="xl:col-span-2" Title="Forms" Description="Typed input controls and grouped labels.">
+        <div class="grid gap-3 sm:grid-cols-2">
+            <UiFormGroup Label="Workspace name" For="workspace-name">
+                <UiInput Id="workspace-name" Value="Operations Team" />
+            </UiFormGroup>
+            <UiFormGroup Label="Region" For="workspace-region">
+                <UiSelect Id="workspace-region" Options="@RegionOptions" Value="global" />
+            </UiFormGroup>
+            <UiFormGroup Label="Description" Class="sm:col-span-2">
+                <UiTextarea Value="This workspace tracks commercial operations." Rows="3" />
+            </UiFormGroup>
+            <div class="sm:col-span-2 flex flex-wrap items-center gap-4">
+                <UiCheckbox Label="Enable email notifications" Checked="true" />
+                <UiSwitch Label="Require MFA" Checked="true" />
             </div>
         </div>
-        <div id="components-panel-2" class="hidden" role="tabpanel" aria-labelledby="components-tab-2">
-            <p class="text-sm text-[var(--text-muted)]">SSO and MFA controls can be composed here with existing input primitives.</p>
+    </UiCard>
+
+    <UiCard Title="Navigation" Description="Breadcrumb and tabs.">
+        <UiBreadcrumb Items="@Breadcrumbs" />
+        <div class="mt-3">
+            <UiTabs Items="@TabItems" ActiveKey="@ActiveTab" ActiveKeyChanged="OnTabChanged" />
         </div>
-    </SectionCard>
+    </UiCard>
+</div>
 
-    <SectionCard Title="Dialogs" Description="Preline dropdown and modal interactions.">
-        <div class="space-y-3">
-            <div class="hs-dropdown relative inline-flex w-full">
-                <button id="component-dropdown" type="button" class="btn-secondary w-full justify-between" aria-haspopup="menu" aria-expanded="false">Quick Actions</button>
-                <div class="hs-dropdown-menu mt-2 hidden w-48 rounded-lg border border-[var(--border-color)] bg-[var(--surface)] p-1 shadow-sm" role="menu" aria-orientation="vertical" aria-labelledby="component-dropdown">
-                    <a class="block rounded-md px-3 py-2 text-sm text-[var(--text-strong)] hover:bg-[var(--surface-subtle)]" href="#">Duplicate card</a>
-                    <a class="block rounded-md px-3 py-2 text-sm text-[var(--text-strong)] hover:bg-[var(--surface-subtle)]" href="#">Archive</a>
-                </div>
-            </div>
+<div class="mt-4 grid gap-4 xl:grid-cols-3">
+    <UiCard Class="xl:col-span-2" Title="Data Table + Pagination" Description="Shared table and pager primitives.">
+        <UiTable Header="@TableHeader">
+            <tr>
+                <td>UiButton</td>
+                <td>Action controls</td>
+                <td><UiBadge Text="Ready" Tone="UiTone.Success" /></td>
+            </tr>
+            <tr>
+                <td>UiModal</td>
+                <td>Dialog overlays</td>
+                <td><UiBadge Text="Ready" Tone="UiTone.Success" /></td>
+            </tr>
+            <tr>
+                <td>UiPagination</td>
+                <td>Page controls and summary</td>
+                <td><UiBadge Text="Ready" Tone="UiTone.Success" /></td>
+            </tr>
+        </UiTable>
 
-            <button type="button" class="btn-primary w-full" data-hs-overlay="#component-modal">Open Modal</button>
-
-            <div id="component-modal" class="hs-overlay pointer-events-none fixed start-0 top-0 z-[80] hidden h-full w-full overflow-y-auto overflow-x-hidden" role="dialog" tabindex="-1" aria-labelledby="component-modal-title">
-                <div class="m-3 mt-16 opacity-0 transition-all ease-out hs-overlay-open:opacity-100 hs-overlay-open:duration-500 sm:mx-auto sm:w-full sm:max-w-lg">
-                    <div class="pointer-events-auto rounded-xl border border-[var(--border-color)] bg-[var(--surface)] shadow-xl">
-                        <div class="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-3">
-                            <h3 id="component-modal-title" class="text-sm font-semibold text-[var(--text-strong)]">Design System Note</h3>
-                            <button type="button" class="btn-ghost px-2 py-1" data-hs-overlay="#component-modal">Close</button>
-                        </div>
-                        <div class="px-4 py-4 text-sm text-[var(--text-muted)]">
-                            This modal is wired with Preline and inherits the active theme variables.
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="mt-4">
+            <UiPagination CurrentPage="2" PageSize="10" TotalCount="52" ResultLabel="components" />
         </div>
-    </SectionCard>
+    </UiCard>
+
+    <UiCard Title="List + Accordion" Description="Composable grouped content patterns.">
+        <UiListGroup Items="@ListItems" />
+        <div class="mt-3">
+            <UiAccordion Items="@AccordionItems" />
+        </div>
+    </UiCard>
 </div>
 
 <div class="mt-4">
-    <SectionCard Title="Data Table + Pagination" Description="Table primitives with compact pagination controls.">
-        <div class="table-wrap">
-            <table class="table-base">
-                <thead>
-                    <tr><th>Component</th><th>Purpose</th><th>Status</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td>MetricCard</td><td>Top-line KPI highlight</td><td><StatusBadge Text="Ready" Tone="success" /></td></tr>
-                    <tr><td>SectionCard</td><td>Common surface wrapper</td><td><StatusBadge Text="Ready" Tone="success" /></td></tr>
-                    <tr><td>Highchart</td><td>Reusable chart host + JS interop</td><td><StatusBadge Text="Ready" Tone="success" /></td></tr>
-                </tbody>
-            </table>
+    <UiCard Title="Overlays" Description="Blazor-first modal, drawer, dropdown, and toast behavior.">
+        <div class="flex flex-wrap gap-2">
+            <UiButton Variant="UiVariant.Primary" OnClick="OpenModal">Open Modal</UiButton>
+            <UiButton Variant="UiVariant.Secondary" OnClick="OpenDrawer">Open Drawer</UiButton>
+            <UiButton Variant="UiVariant.Info" OnClick="ShowToast">Show Toast</UiButton>
+            <UiDropdown IsOpen="@IsDropdownOpen" IsOpenChanged="OnDropdownChanged">
+                <TriggerContent>
+                    <UiButton Variant="UiVariant.Secondary">Dropdown</UiButton>
+                </TriggerContent>
+                <ChildContent>
+                    <a class="dropdown-item" href="/dashboard">Go to dashboard</a>
+                    <a class="dropdown-item" href="/settings">Go to settings</a>
+                </ChildContent>
+            </UiDropdown>
         </div>
-        <nav class="mt-4 flex items-center justify-end gap-2">
-            <button class="btn-secondary px-3 py-1.5 text-xs">Previous</button>
-            <button class="btn-primary px-3 py-1.5 text-xs">1</button>
-            <button class="btn-secondary px-3 py-1.5 text-xs">2</button>
-            <button class="btn-secondary px-3 py-1.5 text-xs">Next</button>
-        </nav>
-    </SectionCard>
+
+        <div class="mt-4 rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] p-3">
+            <p class="text-xs text-[var(--text-muted)]">Usage sample</p>
+            <pre class="mt-2 overflow-x-auto text-xs text-[var(--text-muted)]"><code>&lt;UiButton Variant="UiVariant.Primary"&gt;Save&lt;/UiButton&gt;
+&lt;UiModal IsOpen="isOpen" IsOpenChanged="OnModalChanged" Title="Confirm" /&gt;</code></pre>
+        </div>
+    </UiCard>
 </div>
 
+<UiModal IsOpen="@IsModalOpen" IsOpenChanged="OnModalChanged" Title="Confirm Changes" CloseOnBackdrop="true">
+    <ChildContent>
+        Changes will be applied across the workspace. Continue?
+    </ChildContent>
+    <Footer>
+        <UiButton Variant="UiVariant.Ghost" OnClick="CloseModal">Cancel</UiButton>
+        <UiButton Variant="UiVariant.Primary" OnClick="CloseModal">Confirm</UiButton>
+    </Footer>
+</UiModal>
 
+<UiDrawer IsOpen="@IsDrawerOpen" IsOpenChanged="OnDrawerChanged" Title="Drawer Panel" Placement="UiPlacement.End">
+    <p class="mb-3">This drawer can host filters, quick actions, or contextual details.</p>
+    <UiButton Variant="UiVariant.Primary" OnClick="CloseDrawer">Done</UiButton>
+</UiDrawer>
+
+<UiToast IsOpen="@IsToastOpen" IsOpenChanged="OnToastChanged" Title="Saved" Message="Component demo state updated." Tone="UiTone.Success" AutoHideMs="2600" />
+
+@code {
+    private bool IsModalOpen { get; set; }
+    private bool IsDrawerOpen { get; set; }
+    private bool IsDropdownOpen { get; set; }
+    private bool IsToastOpen { get; set; }
+    private string? ActiveTab { get; set; } = "profile";
+
+    private IReadOnlyList<UiSelectOption> RegionOptions { get; } =
+    [
+        new("global", "Global"),
+        new("us", "US"),
+        new("emea", "EMEA")
+    ];
+
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs { get; } =
+    [
+        new("Home", "/dashboard"),
+        new("Components")
+    ];
+
+    private IReadOnlyList<UiTabItem> TabItems =>
+    [
+        new("profile", "Profile", @<p class="text-sm text-[var(--text-muted)]">Profile settings content.</p>),
+        new("security", "Security", @<p class="text-sm text-[var(--text-muted)]">Security controls content.</p>)
+    ];
+
+    private RenderFragment TableHeader => @<tr>
+        <th>Component</th>
+        <th>Purpose</th>
+        <th>Status</th>
+    </tr>;
+
+    private IReadOnlyList<UiListGroupItem> ListItems { get; } =
+    [
+        new("Design tokens", "Theme variables and semantic color usage", UiTone.Info),
+        new("Accessibility", "Focus states and keyboard-friendly controls", UiTone.Success),
+        new("Responsive", "Mobile-safe sizing and spacing", UiTone.Warning)
+    ];
+
+    private IReadOnlyList<UiAccordionItem> AccordionItems =>
+    [
+        new("api", "API Design", @<p>All components support common typed parameters and class pass-through.</p>, true),
+        new("theme", "Theme Integration", @<p>Components inherit palette, mode, and custom accent tokens.</p>),
+        new("interop", "Interop Strategy", @<p>Only focused JS helpers are used for timer/focus concerns.</p>)
+    ];
+
+    private Task OnModalChanged(bool value)
+    {
+        IsModalOpen = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnDrawerChanged(bool value)
+    {
+        IsDrawerOpen = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnDropdownChanged(bool value)
+    {
+        IsDropdownOpen = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnToastChanged(bool value)
+    {
+        IsToastOpen = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnTabChanged(string? key)
+    {
+        ActiveTab = key;
+        return Task.CompletedTask;
+    }
+
+    private Task OpenModal(MouseEventArgs _)
+    {
+        IsModalOpen = true;
+        return Task.CompletedTask;
+    }
+
+    private Task CloseModal(MouseEventArgs _)
+    {
+        IsModalOpen = false;
+        return Task.CompletedTask;
+    }
+
+    private Task OpenDrawer(MouseEventArgs _)
+    {
+        IsDrawerOpen = true;
+        return Task.CompletedTask;
+    }
+
+    private Task CloseDrawer(MouseEventArgs _)
+    {
+        IsDrawerOpen = false;
+        return Task.CompletedTask;
+    }
+
+    private Task ShowToast(MouseEventArgs _)
+    {
+        IsToastOpen = true;
+        return Task.CompletedTask;
+    }
+}

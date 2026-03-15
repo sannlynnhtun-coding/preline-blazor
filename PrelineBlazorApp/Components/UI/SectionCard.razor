@@ -1,21 +1,6 @@
-<div class="surface-card p-4 md:p-5 @Class">
-    <div class="mb-4 flex items-start justify-between gap-4">
-        <div>
-            <h2 class="text-sm font-semibold text-[var(--text-strong)]">@Title</h2>
-            @if (!string.IsNullOrWhiteSpace(Description))
-            {
-                <p class="mt-1 text-xs text-[var(--text-muted)]">@Description</p>
-            }
-        </div>
-        @if (Header is not null)
-        {
-            <div>
-                @Header
-            </div>
-        }
-    </div>
+<UiCard Title="@Title" Description="@Description" Class="@Class" Header="@Header">
     @ChildContent
-</div>
+</UiCard>
 
 @code {
     [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;

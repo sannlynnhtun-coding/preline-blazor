@@ -685,6 +685,101 @@
     }, 120);
   });
 
+
+  const toastTimers = new Map();
+  const focusTraps = new Map();
+
+  window.uiKit = {
+    focusFirst(containerId) {
+      if (!containerId) return;
+      requestAnimationFrame(() => {
+        const root = document.getElementById(containerId);
+        if (!root) return;
+
+        const target = root.querySelector("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+        if (target && typeof target.focus === "function") {
+          target.focus();
+        }
+      });
+    },
+
+    trapFocus(containerId) {
+      if (!containerId) return;
+      const root = document.getElementById(containerId);
+      if (!root) return;
+
+      this.releaseFocusTrap(containerId);
+
+      const handler = (event) => {
+        if (event.key !== "Tab") return;
+
+        const focusable = root.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+        if (!focusable.length) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+          return;
+        }
+
+        if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      };
+
+      root.addEventListener("keydown", handler);
+      focusTraps.set(containerId, { root, handler });
+    },
+
+    releaseFocusTrap(containerId) {
+      const entry = focusTraps.get(containerId);
+      if (!entry) return;
+      entry.root.removeEventListener("keydown", entry.handler);
+      focusTraps.delete(containerId);
+    },
+
+    repositionDropdown(dropdownId) {
+      if (!dropdownId) return;
+      const root = document.getElementById(dropdownId);
+      if (!root) return;
+
+      const menu = root.querySelector(".ui-dropdown-menu");
+      if (!menu) return;
+
+      menu.style.left = "";
+      menu.style.right = "";
+      const rect = menu.getBoundingClientRect();
+      if (rect.right > window.innerWidth) {
+        menu.style.right = "0";
+      }
+      if (rect.left < 0) {
+        menu.style.left = "0";
+      }
+    },
+
+    startToastTimer(toastId, delayMs, dotNetRef) {
+      if (!toastId || !dotNetRef) return;
+
+      this.clearToastTimer(toastId);
+      const timer = setTimeout(() => {
+        dotNetRef.invokeMethodAsync("HandleAutoHide", toastId);
+      }, Math.max(300, Number(delayMs) || 4000));
+
+      toastTimers.set(toastId, timer);
+    },
+
+    clearToastTimer(toastId) {
+      if (!toastId) return;
+      const timer = toastTimers.get(toastId);
+      if (!timer) return;
+      clearTimeout(timer);
+      toastTimers.delete(toastId);
+    }
+  };
   const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
   const handleSystemThemeChange = () => {
     const preference = loadPreference();
@@ -706,3 +801,5 @@
     window.dashboardUi.reinitialize();
   });
 })();
+
+

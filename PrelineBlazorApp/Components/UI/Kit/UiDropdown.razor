@@ -1,0 +1,63 @@
+@inject IJSRuntime JS
+
+<div id="@Id" class="ui-dropdown @Class" @attributes="AdditionalAttributes">
+    <div class="ui-dropdown-trigger" @onclick="Toggle" role="button" tabindex="0" aria-haspopup="menu" aria-expanded="@IsOpen" @onkeydown="OnTriggerKeyDown">
+        @TriggerContent
+    </div>
+
+    @if (IsOpen)
+    {
+        <div class="ui-dropdown-menu @GetPlacementClass()" role="menu" @onclick="HandleMenuClick" @onclick:stopPropagation>
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = $"ui-dropdown-{Guid.NewGuid():N}";
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public UiPlacement Placement { get; set; } = UiPlacement.Bottom;
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public RenderFragment? TriggerContent { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsOpen)
+        {
+            await JS.InvokeVoidAsync("uiKit.repositionDropdown", Id);
+        }
+    }
+
+    private Task Toggle()
+    {
+        return IsOpenChanged.InvokeAsync(!IsOpen);
+    }
+
+    private async Task OnTriggerKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key is "Enter" or " ")
+        {
+            await Toggle();
+        }
+        else if (args.Key == "Escape" && IsOpen)
+        {
+            await IsOpenChanged.InvokeAsync(false);
+        }
+    }
+
+    private Task HandleMenuClick()
+    {
+        return IsOpenChanged.InvokeAsync(false);
+    }
+
+    private string GetPlacementClass() => Placement switch
+    {
+        UiPlacement.Top => "ui-dropdown-menu-top",
+        UiPlacement.Start => "ui-dropdown-menu-start",
+        UiPlacement.End => "ui-dropdown-menu-end",
+        _ => "ui-dropdown-menu-bottom"
+    };
+}

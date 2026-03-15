@@ -1,17 +1,15 @@
-<span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium @GetClass()">
-    @Text
-</span>
+<UiBadge Tone="@ResolveTone()" Text="@Text" />
 
 @code {
     [Parameter, EditorRequired] public string Text { get; set; } = string.Empty;
     [Parameter] public string Tone { get; set; } = "neutral";
 
-    private string GetClass() => Tone.ToLowerInvariant() switch
+    private UiTone ResolveTone() => Tone.ToLowerInvariant() switch
     {
-        "success" => "badge-success",
-        "warning" => "badge-warning",
-        "danger" => "badge-danger",
-        "info" => "badge-info",
-        _ => "badge-neutral"
+        "success" => UiTone.Success,
+        "warning" => UiTone.Warning,
+        "danger" => UiTone.Danger,
+        "info" => UiTone.Info,
+        _ => UiTone.Neutral
     };
 }

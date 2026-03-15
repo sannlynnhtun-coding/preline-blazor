@@ -6,8 +6,8 @@
 
 <PageHeading Title="Dashboard Overview" Description="Key commercial health signals across growth, revenue, and customer operations.">
     <Actions>
-        <button class="btn-secondary">Download Report</button>
-        <button class="btn-primary">Create Alert</button>
+        <UiButton Variant="UiVariant.Secondary">Download Report</UiButton>
+        <UiButton Variant="UiVariant.Primary">Create Alert</UiButton>
     </Actions>
 </PageHeading>
 
@@ -19,17 +19,17 @@
 </div>
 
 <div class="mt-4 grid gap-4 xl:grid-cols-3">
-    <SectionCard Class="xl:col-span-2" Title="Revenue Trajectory" Description="Monthly recurring revenue over the last 12 months.">
+    <UiCard Class="xl:col-span-2" Title="Revenue Trajectory" Description="Monthly recurring revenue over the last 12 months.">
         <Highchart ChartId="revenue-overview" ChartKind="areaspline" Height="330px" OptionsJson="@RevenueChartJson" />
-    </SectionCard>
+    </UiCard>
 
-    <SectionCard Title="Acquisition Mix" Description="How users discover and convert.">
+    <UiCard Title="Acquisition Mix" Description="How users discover and convert.">
         <Highchart ChartId="channel-mix" ChartKind="pie" Height="330px" OptionsJson="@ChannelChartJson" />
-    </SectionCard>
+    </UiCard>
 </div>
 
 <div class="mt-4 grid gap-4 xl:grid-cols-3">
-    <SectionCard Class="xl:col-span-2" Title="Recent Orders" Description="Operational queue for recently updated orders.">
+    <UiCard Class="xl:col-span-2" Title="Recent Orders" Description="Operational queue for recently updated orders.">
         <TableControls SearchTerm="@OrdersQuery.SearchTerm"
                        SearchTermChanged="OnOrdersSearchChanged"
                        SearchPlaceholder="Search order, customer, amount, status..."
@@ -41,56 +41,32 @@
                        PageSizeChanged="OnOrdersPageSizeChanged"
                        ResultLabel="orders" />
 
-        <div class="table-wrap">
-            <table class="table-base">
-                <thead>
-                    <tr>
-                        <th>Order</th>
-                        <th>Customer</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (PagedOrders.Count == 0)
-                    {
-                        <tr>
-                            <td colspan="5" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No orders match your search.</td>
-                        </tr>
-                    }
-                    else
-                    {
-                        @foreach (var order in PagedOrders)
-                        {
-                            <tr>
-                                <td>@order.OrderNo</td>
-                                <td>@order.Customer</td>
-                                <td>@order.Amount</td>
-                                <td><StatusBadge Text="@order.Status" Tone="@ToneForStatus(order.Status)" /></td>
-                                <td>@order.CreatedOn.ToString("MMM dd, yyyy")</td>
-                            </tr>
-                        }
-                    }
-                </tbody>
-            </table>
-        </div>
-    </SectionCard>
-
-    <SectionCard Title="Operational Alerts" Description="Latest automated health checks.">
-        <ul class="space-y-3">
-            @foreach (var alert in Alerts)
+        <UiTable Header="@HeaderTemplate">
+            @if (PagedOrders.Count == 0)
             {
-                <li class="rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] p-3">
-                    <div class="flex items-center justify-between gap-2">
-                        <h3 class="text-sm font-semibold text-[var(--text-strong)]">@alert.Title</h3>
-                        <StatusBadge Text="@alert.Severity" Tone="@alert.Severity" />
-                    </div>
-                    <p class="mt-2 text-sm text-[var(--text-muted)]">@alert.Message</p>
-                </li>
+                <tr>
+                    <td colspan="5" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No orders match your search.</td>
+                </tr>
             }
-        </ul>
-    </SectionCard>
+            else
+            {
+                @foreach (var order in PagedOrders)
+                {
+                    <tr>
+                        <td>@order.OrderNo</td>
+                        <td>@order.Customer</td>
+                        <td>@order.Amount</td>
+                        <td><UiBadge Text="@order.Status" Tone="@ToneForStatus(order.Status)" /></td>
+                        <td>@order.CreatedOn.ToString("MMM dd, yyyy")</td>
+                    </tr>
+                }
+            }
+        </UiTable>
+    </UiCard>
+
+    <UiCard Title="Operational Alerts" Description="Latest automated health checks.">
+        <UiListGroup Items="@AlertItems" />
+    </UiCard>
 </div>
 
 @code {
@@ -112,12 +88,25 @@
         get
         {
             var filtered = FilteredOrders;
+            OrdersQuery.ClampPage(filtered.Count);
             return filtered
                 .Skip((OrdersQuery.CurrentPage - 1) * OrdersQuery.PageSize)
                 .Take(OrdersQuery.PageSize)
                 .ToList();
         }
     }
+
+    private RenderFragment HeaderTemplate => @<tr>
+        <th>Order</th>
+        <th>Customer</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Date</th>
+    </tr>;
+
+    private IReadOnlyList<UiListGroupItem> AlertItems => Alerts
+        .Select(alert => new UiListGroupItem(alert.Title, alert.Message, ToneForStatus(alert.Severity)))
+        .ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -166,14 +155,15 @@
             || order.Status.Contains(query, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string ToneForStatus(string status) => status.ToLowerInvariant() switch
+    private static UiTone ToneForStatus(string status) => status.ToLowerInvariant() switch
     {
-        "fulfilled" => "success",
-        "processing" => "info",
-        "pending" => "warning",
-        "cancelled" => "danger",
-        _ => "neutral"
+        "fulfilled" => UiTone.Success,
+        "processing" => UiTone.Info,
+        "pending" => UiTone.Warning,
+        "cancelled" => UiTone.Danger,
+        "critical" => UiTone.Danger,
+        "warning" => UiTone.Warning,
+        "info" => UiTone.Info,
+        _ => UiTone.Neutral
     };
 }
-
-

@@ -1,43 +1,29 @@
 <div class="table-toolbar">
     <div class="relative w-full sm:max-w-sm">
         <span class="pointer-events-none absolute inset-y-0 start-3 flex items-center text-[var(--text-muted)]"><svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></span>
-        <input type="text"
-               class="input-base ps-9"
-               value="@SearchTerm"
-               placeholder="@SearchPlaceholder"
-               @oninput="HandleSearchInput" />
+        <UiInput Value="@SearchTerm"
+                 ValueChanged="HandleSearchInput"
+                 Placeholder="@SearchPlaceholder"
+                 Class="ps-9"
+                 AriaLabel="@SearchPlaceholder" />
     </div>
 
     <div class="flex items-center gap-2 text-sm text-[var(--text-muted)]">
         <span>Rows</span>
-        <select class="input-base h-9 w-20 py-1 text-sm" value="@PageSize" @onchange="HandlePageSizeChanged">
-            @foreach (var size in PageSizeOptions)
-            {
-                <option value="@size">@size</option>
-            }
-        </select>
+        <UiSelect Value="@PageSizeValue"
+                  ValueChanged="HandlePageSizeChanged"
+                  Class="h-9 w-20 py-1 text-sm"
+                  Options="@PageSizeSelectOptions"
+                  AriaLabel="Rows per page" />
     </div>
 </div>
 
-<div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <p class="text-xs text-[var(--text-muted)]">
-        Showing @StartIndex-@EndIndex of @FilteredCount @ResultLabel
-    </p>
-
-    <nav class="flex flex-wrap items-center gap-2" aria-label="Table pagination">
-        <button type="button" class="btn-secondary px-3 py-1.5 text-xs" disabled="@IsOnFirstPage" @onclick="() => ChangePage(CurrentPage - 1)">Prev</button>
-
-        @foreach (var pageNumber in VisiblePages)
-        {
-            <button type="button"
-                    class="@(pageNumber == CurrentPage ? "btn-primary" : "btn-secondary") px-3 py-1.5 text-xs"
-                    @onclick="() => ChangePage(pageNumber)">
-                @(pageNumber)
-            </button>
-        }
-
-        <button type="button" class="btn-secondary px-3 py-1.5 text-xs" disabled="@IsOnLastPage" @onclick="() => ChangePage(CurrentPage + 1)">Next</button>
-    </nav>
+<div class="mt-3">
+    <UiPagination CurrentPage="@CurrentPage"
+                  PageSize="@PageSize"
+                  TotalCount="@FilteredCount"
+                  ResultLabel="@ResultLabel"
+                  PageChanged="ChangePage" />
 </div>
 
 @code {
@@ -55,38 +41,20 @@
     [Parameter] public string SearchPlaceholder { get; set; } = "Search records...";
     [Parameter] public string ResultLabel { get; set; } = "results";
 
-    private int TotalPages => Math.Max(1, (int)Math.Ceiling((FilteredCount <= 0 ? 1 : FilteredCount) / (double)PageSize));
-    private bool IsOnFirstPage => CurrentPage <= 1;
-    private bool IsOnLastPage => CurrentPage >= TotalPages;
+    private string PageSizeValue => PageSize.ToString();
 
-    private int StartIndex => FilteredCount <= 0 ? 0 : ((CurrentPage - 1) * PageSize) + 1;
-    private int EndIndex => FilteredCount <= 0 ? 0 : Math.Min(CurrentPage * PageSize, FilteredCount);
+    private IReadOnlyList<UiSelectOption> PageSizeSelectOptions => PageSizeOptions
+        .Select(x => new UiSelectOption(x.ToString(), x.ToString()))
+        .ToArray();
 
-    private IReadOnlyList<int> VisiblePages
+    private Task HandleSearchInput(string? value)
     {
-        get
-        {
-            if (TotalPages <= 5)
-            {
-                return Enumerable.Range(1, TotalPages).ToArray();
-            }
-
-            var start = Math.Max(1, CurrentPage - 2);
-            var end = Math.Min(TotalPages, start + 4);
-            start = Math.Max(1, end - 4);
-
-            return Enumerable.Range(start, (end - start) + 1).ToArray();
-        }
+        return SearchTermChanged.InvokeAsync(value ?? string.Empty);
     }
 
-    private Task HandleSearchInput(ChangeEventArgs args)
+    private async Task HandlePageSizeChanged(string? value)
     {
-        return SearchTermChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
-    }
-
-    private async Task HandlePageSizeChanged(ChangeEventArgs args)
-    {
-        if (!int.TryParse(args.Value?.ToString(), out var size))
+        if (!int.TryParse(value, out var size))
         {
             return;
         }
@@ -94,15 +62,8 @@
         await PageSizeChanged.InvokeAsync(size);
     }
 
-    private async Task ChangePage(int pageNumber)
+    private Task ChangePage(int page)
     {
-        var next = Math.Min(Math.Max(1, pageNumber), TotalPages);
-        if (next == CurrentPage)
-        {
-            return;
-        }
-
-        await PageChanged.InvokeAsync(next);
+        return PageChanged.InvokeAsync(page);
     }
 }
-

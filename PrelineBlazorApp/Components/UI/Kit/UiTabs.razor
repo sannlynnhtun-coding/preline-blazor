@@ -1,0 +1,45 @@
+@if (Items.Count > 0)
+{
+    <div class="ui-tabs @Class" @attributes="AdditionalAttributes">
+        <nav class="ui-tabs-list" role="tablist" aria-label="@AriaLabel">
+            @foreach (var item in Items)
+            {
+                <button type="button"
+                        role="tab"
+                        class="@(item.Key == CurrentActiveKey ? "ui-tab ui-tab-active" : "ui-tab")"
+                        disabled="@item.Disabled"
+                        aria-selected="@(item.Key == CurrentActiveKey)"
+                        @onclick="() => SetActive(item.Key)">
+                    @item.Label
+                </button>
+            }
+        </nav>
+
+        <div class="mt-3">
+            @if (ActiveItem?.Content is not null)
+            {
+                @ActiveItem.Content
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<UiTabItem> Items { get; set; } = [];
+    [Parameter] public string? ActiveKey { get; set; }
+    [Parameter] public EventCallback<string?> ActiveKeyChanged { get; set; }
+    [Parameter] public string? AriaLabel { get; set; } = "Tabs";
+    [Parameter] public string? Class { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CurrentActiveKey => !string.IsNullOrWhiteSpace(ActiveKey)
+        ? ActiveKey!
+        : Items.FirstOrDefault()?.Key ?? string.Empty;
+
+    private UiTabItem? ActiveItem => Items.FirstOrDefault(x => x.Key == CurrentActiveKey) ?? Items.FirstOrDefault();
+
+    private Task SetActive(string key)
+    {
+        return ActiveKeyChanged.InvokeAsync(key);
+    }
+}

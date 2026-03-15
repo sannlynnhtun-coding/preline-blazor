@@ -7,7 +7,7 @@
 <PageHeading Title="Theme Studio" Description="Configure workspace theme behavior with a faster, clearer workflow." />
 
 <div class="grid gap-4 xl:grid-cols-3">
-    <SectionCard Class="xl:col-span-2" Title="Theme Controls" Description="Mode, preset palettes, and custom accents are applied instantly.">
+    <UiCard Class="xl:col-span-2" Title="Theme Controls" Description="Mode, preset palettes, and custom accents are applied instantly.">
         <div class="space-y-6">
             <div>
                 <p class="label-base">Theme mode</p>
@@ -65,9 +65,9 @@
                 Precedence: <strong class="text-[var(--text-strong)]">page custom</strong>, then <strong class="text-[var(--text-strong)]">page palette</strong>, then <strong class="text-[var(--text-strong)]">global custom</strong>, then <strong class="text-[var(--text-strong)]">global palette</strong>, then <strong class="text-[var(--text-strong)]">slate fallback</strong>.
             </div>
         </div>
-    </SectionCard>
+    </UiCard>
 
-    <SectionCard Title="Live Preview" Description="Quick sample using your current mode and effective theme.">
+    <UiCard Title="Live Preview" Description="Quick sample using your current mode and effective theme.">
         <div class="space-y-3">
             <div class="settings-preview-frame">
                 <div class="mb-3 flex items-center justify-between">
@@ -79,8 +79,8 @@
                 <h3 class="text-sm font-semibold text-[var(--text-strong)]">Theme preview card</h3>
                 <p class="mt-1 text-xs text-[var(--text-muted)]">Mode: @Preference.Mode · Accent: @CurrentAccentHex</p>
                 <div class="mt-3 flex gap-2">
-                    <button type="button" class="btn-primary px-2.5 py-1.5 text-xs">Primary</button>
-                    <button type="button" class="btn-secondary px-2.5 py-1.5 text-xs">Secondary</button>
+                    <UiButton Variant="UiVariant.Primary" Size="UiSize.Sm">Primary</UiButton>
+                    <UiButton Variant="UiVariant.Secondary" Size="UiSize.Sm">Secondary</UiButton>
                 </div>
             </div>
 
@@ -88,11 +88,11 @@
                 @TotalOverrideCount override(s) configured across pages.
             </div>
         </div>
-    </SectionCard>
+    </UiCard>
 </div>
 
 <div class="mt-4">
-    <SectionCard Title="Page Overrides" Description="Set per-page palette and optional custom accent. Custom color wins when both are set.">
+    <UiCard Title="Page Overrides" Description="Set per-page palette and optional custom accent. Custom color wins when both are set.">
         <TableControls SearchTerm="@Query.SearchTerm"
                        SearchTermChanged="OnSearchChanged"
                        SearchPlaceholder="Search page title, route, or section..."
@@ -184,7 +184,7 @@
                 </tbody>
             </table>
         </div>
-    </SectionCard>
+    </UiCard>
 </div>
 
 @code {
@@ -557,3 +557,4 @@
         return value.ToLowerInvariant();
     }
 }
+
