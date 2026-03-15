@@ -1,53 +1,260 @@
-﻿@inherits LayoutComponentBase
-@inject IJSRuntime JSRuntime
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject NavigationManager Navigation
+@inject INavigationService NavigationService
+@inject IThemeService ThemeService
+@inject IJSRuntime JS
 
-<div class="flex h-screen bg-gray-100">
+<div class="min-h-screen bg-[var(--surface-ghost)] text-[var(--text-strong)]">
+    <aside id="admin-sidebar" class="hs-overlay [--auto-close:lg] hs-overlay-open:translate-x-0 fixed inset-y-0 start-0 z-[60] w-72 -translate-x-full border-e border-[var(--border-color)] bg-[var(--surface)] transition-transform duration-300 lg:static lg:translate-x-0">
+        <div class="flex h-full flex-col">
+            <div class="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-4">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Preline Admin</p>
+                    <h2 class="mt-1 text-lg font-semibold">SaaS Ops</h2>
+                </div>
+                <button type="button" class="btn-ghost lg:hidden" data-hs-overlay="#admin-sidebar">?</button>
+            </div>
 
-    <!-- Left Sidebar -->
-    <aside id="hs-sidebar-header" class="hs-overlay [--auto-close:lg] lg:block lg:translate-x-0 lg:end-auto lg:bottom-0 w-64
-hs-overlay-open:translate-x-0
--translate-x-full transition-all duration-300 transform
-h-full
-fixed lg:relative top-0 start-0 bottom-0 z-[60]
-bg-white border-e border-gray-200 dark:bg-neutral-800 dark:border-neutral-700" role="dialog" tabindex="-1" aria-label="Sidebar">
-        <div class="relative flex flex-col h-full max-h-full p-2">
+            <nav class="flex-1 space-y-6 overflow-y-auto px-3 py-4">
+                @foreach (var navGroup in NavigationService.Menu.GroupBy(x => x.Section))
+                {
+                    <div>
+                        <p class="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">@navGroup.Key</p>
+                        <ul class="mt-2 space-y-1">
+                            @foreach (var item in navGroup)
+                            {
+                                <li>
+                                    <NavLink href="@item.Href" class="menu-item" activeClass="menu-item-active">
+                                        <span class="menu-item-icon">@((MarkupString)GetIcon(item.Icon))</span>
+                                        <span class="min-w-0 flex-1 truncate">@item.Title</span>
+                                    </NavLink>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </nav>
 
-            <!-- Profile, Header, and Menu Components -->
-            <MainLayoutProfile />
-            <MainLayoutHeader />
-            <MainLayoutMenu />
+            <div class="border-t border-[var(--border-color)] p-3">
+                <div class="rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] px-3 py-2">
+                    <p class="text-xs text-[var(--text-muted)]">System status</p>
+                    <div class="mt-1 flex items-center justify-between text-sm">
+                        <span>All services healthy</span>
+                        <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                    </div>
+                </div>
+            </div>
         </div>
     </aside>
-    <!-- End Sidebar -->
-    <!-- Main Container -->
-    <main class="flex-1 p-6 overflow-auto">
-        <!-- Navigation Toggle -->
-        <div class="lg:hidden p-2">
-            <button type="button" class="flex justify-center items-center gap-x-3 size-8 text-sm text-gray-600 hover:bg-gray-100 rounded-full disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700 dark:hover:text-neutral-200 dark:focus:text-neutral-200" aria-haspopup="dialog" aria-expanded="false" aria-controls="hs-sidebar-header" aria-label="Toggle navigation" data-hs-overlay="#hs-sidebar-header">
-                <svg class="sm:hidden shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M15 3v18" /><path d="m8 9 3 3-3 3" /></svg>
-                <svg class="hidden sm:block shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M15 3v18" /><path d="m10 15-3-3 3-3" /></svg>
-                <span class="sr-only">Navigation Toggle</span>
-            </button>
-        </div>
-        <!-- End Navigation Toggle -->
-        @* <h1 class="text-2xl font-bold mb-4">Main Content</h1> *@
-        @Body
-    </main>
 
+    <div class="min-h-screen lg:ms-72">
+        <header class="sticky top-0 z-40 border-b border-[var(--border-color)] bg-[var(--surface)]/90 backdrop-blur">
+            <div class="flex flex-col gap-3 px-4 py-3 lg:px-6">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <button type="button" class="btn-secondary lg:hidden" data-hs-overlay="#admin-sidebar">Menu</button>
+                        <ol class="hidden items-center gap-2 text-xs text-[var(--text-muted)] sm:flex">
+                            @foreach (var crumb in Breadcrumbs)
+                            {
+                                <li class="flex items-center gap-2">
+                                    @if (!string.IsNullOrWhiteSpace(crumb.Href))
+                                    {
+                                        <a class="hover:text-[var(--text-strong)]" href="@crumb.Href">@crumb.Title</a>
+                                    }
+                                    else
+                                    {
+                                        <span>@crumb.Title</span>
+                                    }
+                                    <span class="text-[var(--border-color)]">/</span>
+                                </li>
+                            }
+                        </ol>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="hs-dropdown relative inline-flex">
+                            <button id="quick-actions" type="button" class="btn-secondary" aria-haspopup="menu" aria-expanded="false">
+                                Quick Actions
+                            </button>
+                            <div class="hs-dropdown-menu hs-dropdown-open:opacity-100 mt-2 hidden w-52 rounded-lg border border-[var(--border-color)] bg-[var(--surface)] p-1 opacity-0 shadow-sm transition" role="menu" aria-orientation="vertical" aria-labelledby="quick-actions">
+                                <a class="dropdown-item" href="/customers">Create customer note</a>
+                                <a class="dropdown-item" href="/tasks">Assign task</a>
+                                <a class="dropdown-item" href="/billing">Review overdue invoice</a>
+                            </div>
+                        </div>
+                        <button class="btn-ghost" title="Notifications">??</button>
+                        <div class="hs-dropdown relative inline-flex">
+                            <button id="profile-menu" type="button" class="btn-ghost" aria-haspopup="menu" aria-expanded="false">Mia Hudson ?</button>
+                            <div class="hs-dropdown-menu hs-dropdown-open:opacity-100 mt-2 hidden w-44 rounded-lg border border-[var(--border-color)] bg-[var(--surface)] p-1 opacity-0 shadow-sm transition" role="menu" aria-orientation="vertical" aria-labelledby="profile-menu">
+                                <a class="dropdown-item" href="/settings">Appearance</a>
+                                <a class="dropdown-item" href="/team">Team profile</a>
+                                <a class="dropdown-item" href="/dashboard">Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                    <div class="relative w-full xl:max-w-xl">
+                        <span class="pointer-events-none absolute inset-y-0 start-3 flex items-center text-[var(--text-muted)]">?</span>
+                        <input type="text" class="input-base ps-9" placeholder="Search customers, orders, tasks..." />
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select class="input-base h-10 w-40 py-1 text-sm" value="@CurrentModeValue" @onchange="OnModeChanged">
+                            <option value="system">System mode</option>
+                            <option value="light">Light mode</option>
+                            <option value="dark">Dark mode</option>
+                        </select>
+
+                        <select class="input-base h-10 w-44 py-1 text-sm" value="@CurrentRoutePalette" @onchange="OnPagePaletteChanged">
+                            <option value="">Page: use default</option>
+                            @foreach (var palette in ThemePalettes.All)
+                            {
+                                <option value="@palette.Key">Page: @palette.Name</option>
+                            }
+                        </select>
+
+                        <a class="btn-secondary" href="/settings">Theme Settings</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="p-4 lg:p-6">
+            @Body
+        </main>
+    </div>
 </div>
 
 <div id="blazor-error-ui">
-	An unhandled error has occurred.
-	<a href="" class="reload">Reload</a>
-	<a class="dismiss">🗙</a>
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">X</a>
 </div>
 
 @code {
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (firstRender)
-		{
-			await JSRuntime.InvokeVoidAsync("initializePreline");
-		}
-	}
+    private ThemePreference _themePreference = ThemePreference.CreateDefault();
+    private string _currentPath = "/dashboard";
+
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs { get; set; } = [];
+
+    private string CurrentModeValue => _themePreference.Mode.ToString().ToLowerInvariant();
+
+    private string CurrentRoutePalette =>
+        _themePreference.PagePaletteOverrides.TryGetValue(_currentPath, out var palette) ? palette : string.Empty;
+
+    protected override void OnInitialized()
+    {
+        UpdateRouteState(Navigation.Uri);
+        Navigation.LocationChanged += HandleLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _themePreference = await ThemeService.GetAsync();
+        await ThemeService.ApplyAsync(_currentPath);
+        await SafeReinitializePrelineAsync();
+
+        StateHasChanged();
+    }
+
+    private async Task OnModeChanged(ChangeEventArgs args)
+    {
+        var value = args.Value?.ToString()?.ToLowerInvariant() ?? "system";
+        var mode = value switch
+        {
+            "light" => ThemeMode.Light,
+            "dark" => ThemeMode.Dark,
+            _ => ThemeMode.System
+        };
+
+        _themePreference.Mode = mode;
+        await ThemeService.SetModeAsync(mode);
+        await ThemeService.ApplyAsync(_currentPath);
+    }
+
+    private async Task OnPagePaletteChanged(ChangeEventArgs args)
+    {
+        var palette = args.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(palette))
+        {
+            _themePreference.PagePaletteOverrides.Remove(_currentPath);
+            await ThemeService.SetPagePaletteAsync(_currentPath, null);
+        }
+        else
+        {
+            _themePreference.PagePaletteOverrides[_currentPath] = palette;
+            await ThemeService.SetPagePaletteAsync(_currentPath, palette);
+        }
+
+        await ThemeService.ApplyAsync(_currentPath);
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            UpdateRouteState(e.Location);
+            await ThemeService.ApplyAsync(_currentPath);
+            await SafeReinitializePrelineAsync();
+            StateHasChanged();
+        });
+    }
+
+    private void UpdateRouteState(string absoluteUri)
+    {
+        var relative = Navigation.ToBaseRelativePath(absoluteUri);
+        var noQuery = relative.Split('?', '#')[0];
+
+        if (string.IsNullOrWhiteSpace(noQuery))
+        {
+            _currentPath = "/dashboard";
+        }
+        else
+        {
+            _currentPath = "/" + noQuery.Trim('/');
+        }
+
+        Breadcrumbs = NavigationService.BuildBreadcrumbs(_currentPath);
+    }
+
+    private async Task SafeReinitializePrelineAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("dashboardUi.reinitialize");
+        }
+        catch
+        {
+            // Ignore transient JS failures.
+        }
+    }
+
+    private static string GetIcon(string icon) => icon switch
+    {
+        "chart-pie" => "<svg viewBox='0 0 24 24' class='size-4' fill='none' stroke='currentColor' stroke-width='1.8'><path d='M21 12a9 9 0 1 1-9-9'/><path d='M13 2v8h8'/></svg>",
+        "line-chart" => "<svg viewBox='0 0 24 24' class='size-4' fill='none' stroke='currentColor' stroke-width='1.8'><path d='M3 3v18h18'/><path d='m19 9-5 5-4-4-4 4'/></svg>",
+        "users" => "<svg viewBox='0 0 24 24' class='size-4' fill='none' stroke='currentColor' stroke-width='1.8'><path d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M23 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>",
+        "shopping-cart" => "<svg viewBox='0 0 24 24' class='size-4' fill='none' stroke='currentColor' stroke-width='1.8'><circle cx='8' cy='21' r='1'/><circle cx='19' cy='21' r='1'/><path d='M2.05 2h3l2.68 12.39a2 2 0 0 0 2 1.61h7.72a2 2 0 0 0 2-1.61L22 7H6'/></svg>",
+        "receipt" => "<svg viewBox='0 0 24 24' class='size-4' fill='none' stroke='currentColor' stroke-width='1.8'><path d='M4 2h16v20l-3-2-3 2-3-2-3 2-3-2-3 2z'/><path d='M8 7h8M8 11h8M8 15h5'/></svg>",
+        "briefcase" => "<svg viewBox='0 0 24 24' class='size-4' fill='none' stroke='currentColor' stroke-width='1.8'><path d='M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16'/><rect x='2' y='7' width='20' height='13' rx='2'/></svg>",
+        "check-square" => "<svg viewBox='0 0 24 24' class='size-4' fill='none' stroke='currentColor' stroke-width='1.8'><rect x='3' y='3' width='18' height='18' rx='2'/><path d='m9 12 2 2 4-4'/></svg>",
+        "activity" => "<svg viewBox='0 0 24 24' class='size-4' fill='none' stroke='currentColor' stroke-width='1.8'><path d='M22 12h-4l-3 9L9 3 6 12H2'/></svg>",
+        "panel-top" => "<svg viewBox='0 0 24 24' class='size-4' fill='none' stroke='currentColor' stroke-width='1.8'><rect x='3' y='4' width='18' height='16' rx='2'/><path d='M3 9h18'/></svg>",
+        "settings" => "<svg viewBox='0 0 24 24' class='size-4' fill='none' stroke='currentColor' stroke-width='1.8'><path d='M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4'/><circle cx='12' cy='12' r='4'/></svg>",
+        _ => "<svg viewBox='0 0 24 24' class='size-4' fill='none' stroke='currentColor' stroke-width='1.8'><circle cx='12' cy='12' r='9'/></svg>"
+    };
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
+    }
 }
+

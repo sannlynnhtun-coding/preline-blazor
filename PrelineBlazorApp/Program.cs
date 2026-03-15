@@ -1,34 +1,26 @@
-using Microsoft.Extensions.FileProviders;
 using PrelineBlazorApp.Components;
+using PrelineBlazorApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddScoped<IThemeService, ThemeService>();
+builder.Services.AddScoped<IDashboardDataService, MockDashboardDataService>();
+builder.Services.AddSingleton<INavigationService, NavigationService>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 app.UseAntiforgery();
-
-// Serve static files from node_modules
-var nodeModulesPath = Path.Combine(builder.Environment.ContentRootPath, "node_modules");
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(nodeModulesPath),
-    RequestPath = "/node_modules"
-});
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

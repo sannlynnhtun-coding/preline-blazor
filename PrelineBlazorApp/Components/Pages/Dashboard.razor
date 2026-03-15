@@ -1,0 +1,179 @@
+@page "/"
+@page "/dashboard"
+@inject IDashboardDataService DashboardData
+
+<PageTitle>Dashboard</PageTitle>
+
+<PageHeading Title="Dashboard Overview" Description="Key commercial health signals across growth, revenue, and customer operations.">
+    <Actions>
+        <button class="btn-secondary">Download Report</button>
+        <button class="btn-primary">Create Alert</button>
+    </Actions>
+</PageHeading>
+
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    @foreach (var kpi in Kpis)
+    {
+        <MetricCard Label="@kpi.Label" Value="@kpi.Value" Delta="@kpi.Delta" DeltaPositive="@kpi.DeltaPositive" Hint="@kpi.Hint" />
+    }
+</div>
+
+<div class="mt-4 grid gap-4 xl:grid-cols-3">
+    <SectionCard Class="xl:col-span-2" Title="Revenue Trajectory" Description="Monthly recurring revenue over the last 12 months.">
+        <Highchart ChartId="revenue-overview" ChartKind="areaspline" Height="330px" OptionsJson="@RevenueChartJson" />
+    </SectionCard>
+
+    <SectionCard Title="Acquisition Mix" Description="How users discover and convert.">
+        <Highchart ChartId="channel-mix" ChartKind="pie" Height="330px" OptionsJson="@ChannelChartJson" />
+    </SectionCard>
+</div>
+
+<div class="mt-4 grid gap-4 xl:grid-cols-3">
+    <SectionCard Class="xl:col-span-2" Title="Recent Orders" Description="Operational queue for recently updated orders.">
+        <TableControls SearchTerm="@OrdersQuery.SearchTerm"
+                       SearchTermChanged="OnOrdersSearchChanged"
+                       SearchPlaceholder="Search order, customer, amount, status..."
+                       FilteredCount="@FilteredOrders.Count"
+                       CurrentPage="@OrdersQuery.CurrentPage"
+                       PageSize="@OrdersQuery.PageSize"
+                       PageSizeOptions="@OrdersQuery.PageSizeOptions"
+                       PageChanged="OnOrdersPageChanged"
+                       PageSizeChanged="OnOrdersPageSizeChanged"
+                       ResultLabel="orders" />
+
+        <div class="table-wrap">
+            <table class="table-base">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (PagedOrders.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No orders match your search.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var order in PagedOrders)
+                        {
+                            <tr>
+                                <td>@order.OrderNo</td>
+                                <td>@order.Customer</td>
+                                <td>@order.Amount</td>
+                                <td><StatusBadge Text="@order.Status" Tone="@ToneForStatus(order.Status)" /></td>
+                                <td>@order.CreatedOn.ToString("MMM dd, yyyy")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </SectionCard>
+
+    <SectionCard Title="Operational Alerts" Description="Latest automated health checks.">
+        <ul class="space-y-3">
+            @foreach (var alert in Alerts)
+            {
+                <li class="rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] p-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-sm font-semibold text-[var(--text-strong)]">@alert.Title</h3>
+                        <StatusBadge Text="@alert.Severity" Tone="@alert.Severity" />
+                    </div>
+                    <p class="mt-2 text-sm text-[var(--text-muted)]">@alert.Message</p>
+                </li>
+            }
+        </ul>
+    </SectionCard>
+</div>
+
+@code {
+    private readonly TableQueryState OrdersQuery = new() { PageSize = 5, PageSizeOptions = [5, 10, 20] };
+
+    private IReadOnlyList<KpiMetric> Kpis { get; set; } = [];
+    private IReadOnlyList<OrderRow> Orders { get; set; } = [];
+    private IReadOnlyList<AlertRow> Alerts { get; set; } = [];
+
+    private string RevenueChartJson { get; set; } = "{}";
+    private string ChannelChartJson { get; set; } = "{}";
+
+    private IReadOnlyList<OrderRow> FilteredOrders => Orders
+        .Where(OrderMatches)
+        .ToList();
+
+    private IReadOnlyList<OrderRow> PagedOrders
+    {
+        get
+        {
+            var filtered = FilteredOrders;
+            return filtered
+                .Skip((OrdersQuery.CurrentPage - 1) * OrdersQuery.PageSize)
+                .Take(OrdersQuery.PageSize)
+                .ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Kpis = await DashboardData.GetKpisAsync();
+        Orders = await DashboardData.GetOrdersAsync();
+        Alerts = await DashboardData.GetAlertsAsync();
+
+        var revenue = await DashboardData.GetRevenueSeriesAsync();
+        var channels = await DashboardData.GetChannelSharesAsync();
+
+        RevenueChartJson = ChartOptionsFactory.CreateRevenueLineOptions(revenue);
+        ChannelChartJson = ChartOptionsFactory.CreateDonutOptions(channels);
+    }
+
+    private Task OnOrdersSearchChanged(string value)
+    {
+        OrdersQuery.SearchTerm = value;
+        OrdersQuery.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private Task OnOrdersPageChanged(int page)
+    {
+        OrdersQuery.CurrentPage = page;
+        return Task.CompletedTask;
+    }
+
+    private Task OnOrdersPageSizeChanged(int pageSize)
+    {
+        OrdersQuery.PageSize = pageSize;
+        OrdersQuery.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private bool OrderMatches(OrderRow order)
+    {
+        if (string.IsNullOrWhiteSpace(OrdersQuery.SearchTerm))
+        {
+            return true;
+        }
+
+        var query = OrdersQuery.SearchTerm.Trim();
+        return order.OrderNo.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || order.Customer.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || order.Amount.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || order.Status.Contains(query, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ToneForStatus(string status) => status.ToLowerInvariant() switch
+    {
+        "fulfilled" => "success",
+        "processing" => "info",
+        "pending" => "warning",
+        "cancelled" => "danger",
+        _ => "neutral"
+    };
+}
+
+

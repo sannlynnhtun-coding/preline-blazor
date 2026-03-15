@@ -1,3 +1,142 @@
-﻿@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@source "../../Components/**/*.{razor,html,cshtml}";
+@source "../../node_modules/preline/dist/*.js";
+@source "../js/**/*.js";
+@custom-variant dark (&:where(.dark, .dark *));
+@plugin "@tailwindcss/forms";
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --surface: #ffffff;
+    --surface-subtle: #f8fafc;
+    --surface-ghost: #f1f5f9;
+    --border-color: #e2e8f0;
+    --text-strong: #0f172a;
+    --text-muted: #64748b;
+    --theme-accent: #334155;
+    --theme-accent-soft: #e2e8f0;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --surface: #0f172a;
+    --surface-subtle: #111827;
+    --surface-ghost: #020617;
+    --border-color: #1e293b;
+    --text-strong: #e2e8f0;
+    --text-muted: #94a3b8;
+    --theme-accent-soft: rgba(148, 163, 184, 0.35);
+  }
+
+  * {
+    border-color: var(--border-color);
+  }
+
+  body {
+    margin: 0;
+    font-family: "Satoshi", "Plus Jakarta Sans", "Segoe UI", sans-serif;
+    background: var(--surface-ghost);
+    color: var(--text-strong);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-xl border border-[var(--border-color)] bg-[var(--surface)] shadow-sm;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-transparent bg-[var(--theme-accent)] px-3 py-2 text-sm font-medium text-white transition hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)];
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--text-strong)] transition hover:bg-[var(--surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)];
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--text-muted)] transition hover:bg-[var(--surface-subtle)] hover:text-[var(--text-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)];
+  }
+
+  .menu-item {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-muted)] transition hover:bg-[var(--surface-subtle)] hover:text-[var(--text-strong)];
+  }
+
+  .menu-item-active {
+    @apply bg-[var(--theme-accent-soft)] text-[var(--text-strong)];
+  }
+
+  .menu-item-icon {
+    @apply inline-flex size-7 items-center justify-center rounded-md border border-[var(--border-color)] bg-[var(--surface)];
+  }
+
+  .dropdown-item {
+    @apply block rounded-md px-3 py-2 text-sm text-[var(--text-strong)] transition hover:bg-[var(--surface-subtle)];
+  }
+
+  .label-base {
+    @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)];
+  }
+
+  .input-base {
+    @apply block w-full rounded-lg border border-[var(--border-color)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-strong)] placeholder:text-[var(--text-muted)] focus:border-[var(--theme-accent)] focus:ring-[var(--theme-accent)];
+  }
+
+  .table-wrap {
+    @apply overflow-x-auto rounded-lg border border-[var(--border-color)];
+  }
+
+  .table-base {
+    @apply min-w-full divide-y divide-[var(--border-color)] text-left text-sm;
+  }
+
+  .table-base th {
+    @apply whitespace-nowrap bg-[var(--surface-subtle)] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)];
+  }
+
+  .table-base td {
+    @apply whitespace-nowrap px-4 py-2 text-[var(--text-strong)];
+  }
+
+  .table-base tbody tr {
+    @apply border-b border-[var(--border-color)]/70 bg-[var(--surface)];
+  }
+
+  .table-base tbody tr:last-child {
+    @apply border-b-0;
+  }
+
+  .badge-neutral {
+    @apply bg-slate-100 text-slate-700 dark:bg-slate-800/70 dark:text-slate-200;
+  }
+
+  .badge-success {
+    @apply bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200;
+  }
+
+  .badge-warning {
+    @apply bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200;
+  }
+
+  .badge-danger {
+    @apply bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200;
+  }
+
+  .badge-info {
+    @apply bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-200;
+  }
+}
+
+@layer components {
+  .table-toolbar {
+    @apply mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+}

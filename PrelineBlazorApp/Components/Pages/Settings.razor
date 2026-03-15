@@ -1,0 +1,216 @@
+@page "/settings"
+@inject INavigationService Navigation
+@inject IThemeService ThemeService
+
+<PageTitle>Settings</PageTitle>
+
+<PageHeading Title="Settings" Description="Configure global and per-page theme behavior for the dashboard." />
+
+<div class="grid gap-4 xl:grid-cols-3">
+    <SectionCard Class="xl:col-span-2" Title="Appearance" Description="Default mode and palette applied across the workspace.">
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+                <label class="label-base" for="settings-mode">Theme mode</label>
+                <select id="settings-mode" class="input-base" value="@Preference.Mode.ToString().ToLowerInvariant()" @onchange="OnModeChanged">
+                    <option value="system">System</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="label-base" for="settings-default-palette">Default palette</label>
+                <select id="settings-default-palette" class="input-base" value="@Preference.DefaultPalette" @onchange="OnDefaultPaletteChanged">
+                    @foreach (var palette in ThemePalettes.All)
+                    {
+                        <option value="@palette.Key">@palette.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <p class="mt-3 text-xs text-[var(--text-muted)]">Precedence: page override, then global default, then system fallback.</p>
+    </SectionCard>
+
+    <SectionCard Title="Palette Preview" Description="Quick swatches of available palette accents.">
+        <ul class="space-y-2">
+            @foreach (var palette in ThemePalettes.All)
+            {
+                <li class="flex items-center justify-between rounded-lg border border-[var(--border-color)] px-3 py-2">
+                    <span class="text-sm text-[var(--text-strong)]">@palette.Name</span>
+                    <span class="h-4 w-10 rounded-md" style="background:@palette.AccentHex"></span>
+                </li>
+            }
+        </ul>
+    </SectionCard>
+</div>
+
+<div class="mt-4">
+    <SectionCard Title="Page Overrides" Description="Customize accent palette for specific routes.">
+        <TableControls SearchTerm="@Query.SearchTerm"
+                       SearchTermChanged="OnSearchChanged"
+                       SearchPlaceholder="Search page title or route..."
+                       FilteredCount="@FilteredPages.Count"
+                       CurrentPage="@Query.CurrentPage"
+                       PageSize="@Query.PageSize"
+                       PageSizeOptions="@Query.PageSizeOptions"
+                       PageChanged="OnPageChanged"
+                       PageSizeChanged="OnPageSizeChanged"
+                       ResultLabel="pages" />
+
+        <div class="table-wrap">
+            <table class="table-base">
+                <thead>
+                    <tr>
+                        <th>Page</th>
+                        <th>Route</th>
+                        <th>Palette Override</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (PagedPages.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="3" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No pages match your search.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var navPage in PagedPages)
+                        {
+                            <tr>
+                                <td>@navPage.Title</td>
+                                <td class="font-mono text-xs">@navPage.Href</td>
+                                <td>
+                                    <select class="input-base py-1 text-sm" value="@GetPagePalette(navPage.Href)" @onchange="(e) => OnPagePaletteChanged(navPage.Href, e)">
+                                        <option value="">Use default</option>
+                                        @foreach (var palette in ThemePalettes.All)
+                                        {
+                                            <option value="@palette.Key">@palette.Name</option>
+                                        }
+                                    </select>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </SectionCard>
+</div>
+
+@code {
+    private readonly TableQueryState Query = new() { PageSize = 5, PageSizeOptions = [5, 10, 20] };
+    private ThemePreference Preference { get; set; } = ThemePreference.CreateDefault();
+
+    private IReadOnlyList<NavItem> FilteredPages => Navigation.Menu
+        .Where(PageMatches)
+        .ToList();
+
+    private IReadOnlyList<NavItem> PagedPages
+    {
+        get
+        {
+            var filtered = FilteredPages;
+            return filtered
+                .Skip((Query.CurrentPage - 1) * Query.PageSize)
+                .Take(Query.PageSize)
+                .ToList();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        Preference = await ThemeService.GetAsync();
+        await ThemeService.ApplyAsync("/settings");
+        StateHasChanged();
+    }
+
+    private Task OnSearchChanged(string value)
+    {
+        Query.SearchTerm = value;
+        Query.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private Task OnPageChanged(int page)
+    {
+        Query.CurrentPage = page;
+        return Task.CompletedTask;
+    }
+
+    private Task OnPageSizeChanged(int pageSize)
+    {
+        Query.PageSize = pageSize;
+        Query.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private bool PageMatches(NavItem page)
+    {
+        if (string.IsNullOrWhiteSpace(Query.SearchTerm))
+        {
+            return true;
+        }
+
+        var q = Query.SearchTerm.Trim();
+        return page.Title.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || page.Href.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || page.Section.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || page.Description.Contains(q, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task OnModeChanged(ChangeEventArgs args)
+    {
+        var value = args.Value?.ToString()?.ToLowerInvariant() ?? "system";
+        var mode = value switch
+        {
+            "light" => ThemeMode.Light,
+            "dark" => ThemeMode.Dark,
+            _ => ThemeMode.System
+        };
+
+        await ThemeService.SetModeAsync(mode);
+        Preference.Mode = mode;
+        await ThemeService.ApplyAsync("/settings");
+    }
+
+    private async Task OnDefaultPaletteChanged(ChangeEventArgs args)
+    {
+        var palette = args.Value?.ToString() ?? ThemePreference.CreateDefault().DefaultPalette;
+        await ThemeService.SetDefaultPaletteAsync(palette);
+        Preference.DefaultPalette = palette;
+        await ThemeService.ApplyAsync("/settings");
+    }
+
+    private async Task OnPagePaletteChanged(string route, ChangeEventArgs args)
+    {
+        var palette = args.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(palette))
+        {
+            palette = null;
+        }
+
+        await ThemeService.SetPagePaletteAsync(route, palette);
+        if (palette is null)
+        {
+            Preference.PagePaletteOverrides.Remove(route);
+        }
+        else
+        {
+            Preference.PagePaletteOverrides[route] = palette;
+        }
+
+        await ThemeService.ApplyAsync("/settings");
+    }
+
+    private string GetPagePalette(string route)
+    {
+        return Preference.PagePaletteOverrides.TryGetValue(route, out var value) ? value : string.Empty;
+    }
+}
+

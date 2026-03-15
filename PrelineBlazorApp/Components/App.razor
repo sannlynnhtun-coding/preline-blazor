@@ -1,30 +1,23 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<base href="/" />
-	@* <link rel="stylesheet" href="bootstrap/bootstrap.min.css" /> *@
-	<link rel="stylesheet" href="app.css" />
-	@* <link rel="stylesheet" href="PrelineBlazorApp.styles.css" /> *@
-	<link rel="icon" type="image/png" href="favicon.png" />
-
-	<link href="css/output.css" rel="stylesheet" />
-	<HeadOutlet @rendermode="InteractiveServer" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="css/output.css" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
-	<Routes @rendermode="InteractiveServer" />
-	<script src="_framework/blazor.web.js"></script>
-	<script src="../node_modules/preline/dist/preline.js"></script>
-	@* <script src="js/preline.js"></script> *@
+    <Routes @rendermode="InteractiveServer" />
 
-	<script>
-		window.initializePreline = () => {
-			window.HSStaticMethods.autoInit();
-		};
-	</script>
+    <script src="_framework/blazor.web.js"></script>
+    <script src="js/vendor/highcharts.js"></script>
+    <script src="js/vendor/preline.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,124 @@
+@page "/customers"
+@inject IDashboardDataService DashboardData
+
+<PageTitle>Customers</PageTitle>
+
+<PageHeading Title="Customers" Description="Segmented customer health and recurring revenue impact." />
+
+<SectionCard Title="Customer Accounts" Description="Top accounts with current revenue state.">
+    <TableControls SearchTerm="@Query.SearchTerm"
+                   SearchTermChanged="OnSearchChanged"
+                   SearchPlaceholder="Search customer, email, segment, MRR, status..."
+                   FilteredCount="@FilteredCustomers.Count"
+                   CurrentPage="@Query.CurrentPage"
+                   PageSize="@Query.PageSize"
+                   PageSizeOptions="@Query.PageSizeOptions"
+                   PageChanged="OnPageChanged"
+                   PageSizeChanged="OnPageSizeChanged"
+                   ResultLabel="customers" />
+
+    <div class="table-wrap">
+        <table class="table-base">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Segment</th>
+                    <th>MRR</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (PagedCustomers.Count == 0)
+                {
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No customers match your search.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var customer in PagedCustomers)
+                    {
+                        <tr>
+                            <td>@customer.Name</td>
+                            <td>@customer.Email</td>
+                            <td>@customer.Segment</td>
+                            <td>@customer.Mrr</td>
+                            <td><StatusBadge Text="@customer.Status" Tone="@ToneForStatus(customer.Status)" /></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</SectionCard>
+
+@code {
+    private readonly TableQueryState Query = new();
+    private IReadOnlyList<CustomerRow> CustomerList { get; set; } = [];
+
+    private IReadOnlyList<CustomerRow> FilteredCustomers => CustomerList
+        .Where(CustomerMatches)
+        .ToList();
+
+    private IReadOnlyList<CustomerRow> PagedCustomers
+    {
+        get
+        {
+            var filtered = FilteredCustomers;
+            return filtered
+                .Skip((Query.CurrentPage - 1) * Query.PageSize)
+                .Take(Query.PageSize)
+                .ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CustomerList = await DashboardData.GetCustomersAsync();
+    }
+
+    private Task OnSearchChanged(string value)
+    {
+        Query.SearchTerm = value;
+        Query.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private Task OnPageChanged(int page)
+    {
+        Query.CurrentPage = page;
+        return Task.CompletedTask;
+    }
+
+    private Task OnPageSizeChanged(int pageSize)
+    {
+        Query.PageSize = pageSize;
+        Query.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private bool CustomerMatches(CustomerRow customer)
+    {
+        if (string.IsNullOrWhiteSpace(Query.SearchTerm))
+        {
+            return true;
+        }
+
+        var q = Query.SearchTerm.Trim();
+        return customer.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || customer.Email.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || customer.Segment.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || customer.Mrr.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || customer.Status.Contains(q, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ToneForStatus(string status) => status.ToLowerInvariant() switch
+    {
+        "healthy" => "success",
+        "new" => "info",
+        "at risk" => "warning",
+        _ => "neutral"
+    };
+}
+

@@ -1,0 +1,44 @@
+@page "/tasks"
+@inject IDashboardDataService DashboardData
+
+<PageTitle>Tasks</PageTitle>
+
+<PageHeading Title="Tasks" Description="Prioritized operations queue for this week." />
+
+<SectionCard Title="Task Queue" Description="Track assignments and due dates.">
+    <div class="space-y-2">
+        @foreach (var task in TaskList)
+        {
+            <label class="flex items-start gap-3 rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] p-3">
+                <input type="checkbox" checked="@task.Done" class="mt-0.5 h-4 w-4 rounded border-[var(--border-color)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]" />
+                <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <p class="text-sm font-medium text-[var(--text-strong)]">@task.Title</p>
+                        <StatusBadge Text="@task.Priority" Tone="@ToneForPriority(task.Priority)" />
+                    </div>
+                    <p class="mt-1 text-xs text-[var(--text-muted)]">@task.Assignee · Due @task.DueOn.ToString("MMM dd")</p>
+                </div>
+            </label>
+        }
+    </div>
+</SectionCard>
+
+@code {
+    private IReadOnlyList<TaskRow> TaskList { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        TaskList = await DashboardData.GetTasksAsync();
+    }
+
+    private static string ToneForPriority(string priority) => priority.ToLowerInvariant() switch
+    {
+        "high" => "danger",
+        "medium" => "warning",
+        "low" => "info",
+        _ => "neutral"
+    };
+}
+
+
+

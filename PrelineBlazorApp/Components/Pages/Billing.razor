@@ -1,0 +1,143 @@
+@page "/billing"
+@inject IDashboardDataService DashboardData
+
+<PageTitle>Billing</PageTitle>
+
+<PageHeading Title="Billing & Invoices" Description="Track invoice lifecycle, due dates, and collection risk." />
+
+<div class="grid gap-4 xl:grid-cols-3">
+    <SectionCard Class="xl:col-span-2" Title="Invoices" Description="Current invoice state across accounts.">
+        <TableControls SearchTerm="@Query.SearchTerm"
+                       SearchTermChanged="OnSearchChanged"
+                       SearchPlaceholder="Search invoice, customer, amount, status..."
+                       FilteredCount="@FilteredInvoices.Count"
+                       CurrentPage="@Query.CurrentPage"
+                       PageSize="@Query.PageSize"
+                       PageSizeOptions="@Query.PageSizeOptions"
+                       PageChanged="OnPageChanged"
+                       PageSizeChanged="OnPageSizeChanged"
+                       ResultLabel="invoices" />
+
+        <div class="table-wrap">
+            <table class="table-base">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Due</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (PagedInvoices.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No invoices match your search.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var invoice in PagedInvoices)
+                        {
+                            <tr>
+                                <td>@invoice.Number</td>
+                                <td>@invoice.Customer</td>
+                                <td>@invoice.Amount</td>
+                                <td><StatusBadge Text="@invoice.State" Tone="@ToneForStatus(invoice.State)" /></td>
+                                <td>@invoice.DueOn.ToString("MMM dd, yyyy")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </SectionCard>
+
+    <SectionCard Title="Billing Alerts" Description="Items needing finance attention.">
+        <ul class="space-y-3">
+            @foreach (var invoice in Invoices.Where(i => i.State is "Overdue" or "Due"))
+            {
+                <li class="rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] p-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-semibold text-[var(--text-strong)]">@invoice.Number</h3>
+                        <StatusBadge Text="@invoice.State" Tone="@ToneForStatus(invoice.State)" />
+                    </div>
+                    <p class="mt-2 text-sm text-[var(--text-muted)]">@invoice.Customer · @invoice.Amount</p>
+                    <p class="mt-1 text-xs text-[var(--text-muted)]">Due @invoice.DueOn.ToString("MMM dd, yyyy")</p>
+                </li>
+            }
+        </ul>
+    </SectionCard>
+</div>
+
+@code {
+    private readonly TableQueryState Query = new();
+    private IReadOnlyList<InvoiceRow> Invoices { get; set; } = [];
+
+    private IReadOnlyList<InvoiceRow> FilteredInvoices => Invoices
+        .Where(InvoiceMatches)
+        .ToList();
+
+    private IReadOnlyList<InvoiceRow> PagedInvoices
+    {
+        get
+        {
+            var filtered = FilteredInvoices;
+            return filtered
+                .Skip((Query.CurrentPage - 1) * Query.PageSize)
+                .Take(Query.PageSize)
+                .ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Invoices = await DashboardData.GetInvoicesAsync();
+    }
+
+    private Task OnSearchChanged(string value)
+    {
+        Query.SearchTerm = value;
+        Query.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private Task OnPageChanged(int page)
+    {
+        Query.CurrentPage = page;
+        return Task.CompletedTask;
+    }
+
+    private Task OnPageSizeChanged(int pageSize)
+    {
+        Query.PageSize = pageSize;
+        Query.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private bool InvoiceMatches(InvoiceRow invoice)
+    {
+        if (string.IsNullOrWhiteSpace(Query.SearchTerm))
+        {
+            return true;
+        }
+
+        var q = Query.SearchTerm.Trim();
+        return invoice.Number.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || invoice.Customer.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || invoice.Amount.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || invoice.State.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || invoice.DueOn.ToString("MMM dd, yyyy").Contains(q, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ToneForStatus(string status) => status.ToLowerInvariant() switch
+    {
+        "paid" => "success",
+        "due" => "warning",
+        "overdue" => "danger",
+        "draft" => "info",
+        _ => "neutral"
+    };
+}
+

@@ -1,0 +1,106 @@
+@page "/components"
+
+<PageTitle>Components</PageTitle>
+
+<PageHeading Title="Components Showcase" Description="Reusable shadcn-inspired surfaces built with Tailwind + Preline interactions." />
+
+<div class="grid gap-4 xl:grid-cols-2">
+    <SectionCard Title="Buttons" Description="Primary and secondary action patterns.">
+        <div class="flex flex-wrap gap-2">
+            <button class="btn-primary">Primary</button>
+            <button class="btn-secondary">Secondary</button>
+            <button class="btn-ghost">Ghost</button>
+        </div>
+    </SectionCard>
+
+    <SectionCard Title="Badges" Description="Semantic status badges.">
+        <div class="flex flex-wrap gap-2">
+            <StatusBadge Text="Success" Tone="success" />
+            <StatusBadge Text="Warning" Tone="warning" />
+            <StatusBadge Text="Danger" Tone="danger" />
+            <StatusBadge Text="Info" Tone="info" />
+            <StatusBadge Text="Neutral" Tone="neutral" />
+        </div>
+    </SectionCard>
+</div>
+
+<div class="mt-4 grid gap-4 xl:grid-cols-3">
+    <SectionCard Class="xl:col-span-2" Title="Tabs + Input" Description="Preline tabs with form controls.">
+        <nav class="mb-4 flex gap-2" role="tablist" aria-label="Tabs" data-hs-tab>
+            <button type="button" class="hs-tab-active:border-[var(--theme-accent)] hs-tab-active:text-[var(--theme-accent)] rounded-md border border-transparent px-3 py-1.5 text-sm text-[var(--text-muted)]" id="components-tab-1" data-hs-tab="#components-panel-1" aria-controls="components-panel-1" role="tab">Profile</button>
+            <button type="button" class="hs-tab-active:border-[var(--theme-accent)] hs-tab-active:text-[var(--theme-accent)] rounded-md border border-transparent px-3 py-1.5 text-sm text-[var(--text-muted)]" id="components-tab-2" data-hs-tab="#components-panel-2" aria-controls="components-panel-2" role="tab">Security</button>
+        </nav>
+        <div id="components-panel-1" role="tabpanel" aria-labelledby="components-tab-1">
+            <div class="grid gap-3 sm:grid-cols-2">
+                <div>
+                    <label class="label-base" for="component-name">Display name</label>
+                    <input id="component-name" class="input-base" type="text" value="Operations Team" />
+                </div>
+                <div>
+                    <label class="label-base" for="component-region">Region</label>
+                    <select id="component-region" class="input-base">
+                        <option>Global</option>
+                        <option>US</option>
+                        <option>EMEA</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div id="components-panel-2" class="hidden" role="tabpanel" aria-labelledby="components-tab-2">
+            <p class="text-sm text-[var(--text-muted)]">SSO and MFA controls can be composed here with existing input primitives.</p>
+        </div>
+    </SectionCard>
+
+    <SectionCard Title="Dialogs" Description="Preline dropdown and modal interactions.">
+        <div class="space-y-3">
+            <div class="hs-dropdown relative inline-flex w-full">
+                <button id="component-dropdown" type="button" class="btn-secondary w-full justify-between" aria-haspopup="menu" aria-expanded="false">Quick Actions</button>
+                <div class="hs-dropdown-menu mt-2 hidden w-48 rounded-lg border border-[var(--border-color)] bg-[var(--surface)] p-1 shadow-sm" role="menu" aria-orientation="vertical" aria-labelledby="component-dropdown">
+                    <a class="block rounded-md px-3 py-2 text-sm text-[var(--text-strong)] hover:bg-[var(--surface-subtle)]" href="#">Duplicate card</a>
+                    <a class="block rounded-md px-3 py-2 text-sm text-[var(--text-strong)] hover:bg-[var(--surface-subtle)]" href="#">Archive</a>
+                </div>
+            </div>
+
+            <button type="button" class="btn-primary w-full" data-hs-overlay="#component-modal">Open Modal</button>
+
+            <div id="component-modal" class="hs-overlay pointer-events-none fixed start-0 top-0 z-[80] hidden h-full w-full overflow-y-auto overflow-x-hidden" role="dialog" tabindex="-1" aria-labelledby="component-modal-title">
+                <div class="m-3 mt-16 opacity-0 transition-all ease-out hs-overlay-open:opacity-100 hs-overlay-open:duration-500 sm:mx-auto sm:w-full sm:max-w-lg">
+                    <div class="pointer-events-auto rounded-xl border border-[var(--border-color)] bg-[var(--surface)] shadow-xl">
+                        <div class="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-3">
+                            <h3 id="component-modal-title" class="text-sm font-semibold text-[var(--text-strong)]">Design System Note</h3>
+                            <button type="button" class="btn-ghost px-2 py-1" data-hs-overlay="#component-modal">Close</button>
+                        </div>
+                        <div class="px-4 py-4 text-sm text-[var(--text-muted)]">
+                            This modal is wired with Preline and inherits the active theme variables.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </SectionCard>
+</div>
+
+<div class="mt-4">
+    <SectionCard Title="Data Table + Pagination" Description="Table primitives with compact pagination controls.">
+        <div class="table-wrap">
+            <table class="table-base">
+                <thead>
+                    <tr><th>Component</th><th>Purpose</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>MetricCard</td><td>Top-line KPI highlight</td><td><StatusBadge Text="Ready" Tone="success" /></td></tr>
+                    <tr><td>SectionCard</td><td>Common surface wrapper</td><td><StatusBadge Text="Ready" Tone="success" /></td></tr>
+                    <tr><td>Highchart</td><td>Reusable chart host + JS interop</td><td><StatusBadge Text="Ready" Tone="success" /></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <nav class="mt-4 flex items-center justify-end gap-2">
+            <button class="btn-secondary px-3 py-1.5 text-xs">Previous</button>
+            <button class="btn-primary px-3 py-1.5 text-xs">1</button>
+            <button class="btn-secondary px-3 py-1.5 text-xs">2</button>
+            <button class="btn-secondary px-3 py-1.5 text-xs">Next</button>
+        </nav>
+    </SectionCard>
+</div>
+
+
