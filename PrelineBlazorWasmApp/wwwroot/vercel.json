@@ -1,13 +1,14 @@
 {
   "version": 2,
   "cleanUrls": false,
-  "routes": [
+  "rewrites": [
     {
-      "handle": "filesystem"
+      "source": "/_framework/(.*)",
+      "destination": "/_framework/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

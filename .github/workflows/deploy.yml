@@ -36,7 +36,12 @@ jobs:
       # 4. Compile the Wasm Project for Production
       - name: Publish WasmApp
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run: dotnet publish PrelineBlazorWasmApp/PrelineBlazorWasmApp.csproj -c Release -o release
+        run: dotnet publish PrelineBlazorWasmApp/PrelineBlazorWasmApp.csproj -c Release -o publish_output
+
+      # Optional: List output for debugging if needed
+      - name: List Output Contents
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: ls -R publish_output
 
       # 5. Push to Vercel
       - name: Deploy to Vercel
@@ -47,4 +52,4 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: '--prod'
-          working-directory: ./release/wwwroot # Vercel needs the static assets folder
+          working-directory: ./publish_output/wwwroot # Vercel needs the static assets folder
