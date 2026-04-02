@@ -1,0 +1,94 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+@if (IsOpen)
+{
+    <div id="@Id" class="@CssClass" role="status" aria-live="polite" @attributes="AdditionalAttributes">
+        <div class="flex-1 min-w-0">
+            @if (!string.IsNullOrWhiteSpace(Title))
+            {
+                <h3 class="text-sm font-semibold text-[var(--text-strong)]">@Title</h3>
+            }
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+            else if (!string.IsNullOrWhiteSpace(Message))
+            {
+                <p class="text-sm text-[var(--text-muted)]">@Message</p>
+            }
+        </div>
+        <UiButton Variant="UiVariant.Ghost" Size="UiSize.Sm" Class="px-2 py-1" OnClick="Close">Close</UiButton>
+    </div>
+}
+
+@code {
+    private DotNetObjectReference<UiToast>? _objRef;
+
+    [Parameter] public string Id { get; set; } = $"ui-toast-{Guid.NewGuid():N}";
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public int AutoHideMs { get; set; } = 4000;
+    [Parameter] public UiTone Tone { get; set; } = UiTone.Info;
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!IsOpen)
+        {
+            await JS.InvokeVoidAsync("uiKit.clearToastTimer", Id);
+            return;
+        }
+
+        _objRef ??= DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("uiKit.startToastTimer", Id, AutoHideMs, _objRef);
+    }
+
+    [JSInvokable]
+    public async Task HandleAutoHide(string toastId)
+    {
+        if (!string.Equals(toastId, Id, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        await IsOpenChanged.InvokeAsync(false);
+    }
+
+    private Task Close(MouseEventArgs _)
+    {
+        return IsOpenChanged.InvokeAsync(false);
+    }
+
+    private string CssClass => string.Join(" ", new[]
+    {
+        "ui-toast",
+        Tone switch
+        {
+            UiTone.Success => "ui-toast-success",
+            UiTone.Warning => "ui-toast-warning",
+            UiTone.Danger => "ui-toast-danger",
+            UiTone.Info => "ui-toast-info",
+            _ => "ui-toast-neutral"
+        },
+        Class
+    }.Where(static x => !string.IsNullOrWhiteSpace(x)));
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("uiKit.clearToastTimer", Id);
+        }
+        catch
+        {
+            // ignore cleanup failures
+        }
+
+        _objRef?.Dispose();
+    }
+}

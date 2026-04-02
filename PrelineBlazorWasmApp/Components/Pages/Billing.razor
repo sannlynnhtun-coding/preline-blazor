@@ -1,0 +1,131 @@
+@page "/billing"
+@inject IDashboardDataService DashboardData
+
+<PageTitle>Billing</PageTitle>
+
+<PageHeading Title="Billing & Invoices" Description="Track invoice lifecycle, due dates, and collection risk." />
+
+<div class="grid gap-4 xl:grid-cols-3">
+    <UiCard Class="xl:col-span-2" Title="Invoices" Description="Current invoice state across accounts.">
+        <TableControls SearchTerm="@Query.SearchTerm"
+                       SearchTermChanged="OnSearchChanged"
+                       SearchPlaceholder="Search invoice, customer, amount, status..."
+                       FilteredCount="@FilteredInvoices.Count"
+                       CurrentPage="@Query.CurrentPage"
+                       PageSize="@Query.PageSize"
+                       PageSizeOptions="@Query.PageSizeOptions"
+                       PageChanged="OnPageChanged"
+                       PageSizeChanged="OnPageSizeChanged"
+                       ResultLabel="invoices" />
+
+        <UiTable Header="@HeaderTemplate">
+            @if (PagedInvoices.Count == 0)
+            {
+                <tr>
+                    <td colspan="5" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No invoices match your search.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var invoice in PagedInvoices)
+                {
+                    <tr>
+                        <td>@invoice.Number</td>
+                        <td>@invoice.Customer</td>
+                        <td>@invoice.Amount</td>
+                        <td><UiBadge Text="@invoice.State" Tone="@ToneForStatus(invoice.State)" /></td>
+                        <td>@invoice.DueOn.ToString("MMM dd, yyyy")</td>
+                    </tr>
+                }
+            }
+        </UiTable>
+    </UiCard>
+
+    <UiCard Title="Billing Alerts" Description="Items needing finance attention.">
+        <UiListGroup Items="@BillingAlertItems" />
+    </UiCard>
+</div>
+
+@code {
+    private readonly TableQueryState Query = new();
+    private IReadOnlyList<InvoiceRow> Invoices { get; set; } = [];
+
+    private RenderFragment HeaderTemplate => @<tr>
+        <th>Invoice</th>
+        <th>Customer</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Due</th>
+    </tr>;
+
+    private IReadOnlyList<UiListGroupItem> BillingAlertItems => Invoices
+        .Where(i => i.State is "Overdue" or "Due")
+        .Select(i => new UiListGroupItem(i.Number, $"{i.Customer} · {i.Amount} · Due {i.DueOn:MMM dd, yyyy}", ToneForStatus(i.State)))
+        .ToList();
+
+    private IReadOnlyList<InvoiceRow> FilteredInvoices => Invoices
+        .Where(InvoiceMatches)
+        .ToList();
+
+    private IReadOnlyList<InvoiceRow> PagedInvoices
+    {
+        get
+        {
+            var filtered = FilteredInvoices;
+            Query.ClampPage(filtered.Count);
+            return filtered
+                .Skip((Query.CurrentPage - 1) * Query.PageSize)
+                .Take(Query.PageSize)
+                .ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Invoices = await DashboardData.GetInvoicesAsync();
+    }
+
+    private Task OnSearchChanged(string value)
+    {
+        Query.SearchTerm = value;
+        Query.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private Task OnPageChanged(int page)
+    {
+        Query.CurrentPage = page;
+        return Task.CompletedTask;
+    }
+
+    private Task OnPageSizeChanged(int pageSize)
+    {
+        Query.PageSize = pageSize;
+        Query.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private bool InvoiceMatches(InvoiceRow invoice)
+    {
+        if (string.IsNullOrWhiteSpace(Query.SearchTerm))
+        {
+            return true;
+        }
+
+        var q = Query.SearchTerm.Trim();
+        return invoice.Number.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || invoice.Customer.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || invoice.Amount.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || invoice.State.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || invoice.DueOn.ToString("MMM dd, yyyy").Contains(q, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static UiTone ToneForStatus(string status) => status.ToLowerInvariant() switch
+    {
+        "paid" => UiTone.Success,
+        "due" => UiTone.Warning,
+        "overdue" => UiTone.Danger,
+        "draft" => UiTone.Info,
+        _ => UiTone.Neutral
+    };
+}

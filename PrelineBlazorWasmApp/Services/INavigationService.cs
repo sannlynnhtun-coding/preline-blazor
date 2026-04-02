@@ -1,0 +1,10 @@
+using PrelineBlazorWasmApp.Models.Navigation;
+
+namespace PrelineBlazorWasmApp.Services;
+
+public interface INavigationService
+{
+    IReadOnlyList<NavItem> Menu { get; }
+    NavItem? Resolve(string path);
+    IReadOnlyList<BreadcrumbItem> BuildBreadcrumbs(string path);
+}

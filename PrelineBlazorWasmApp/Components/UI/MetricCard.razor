@@ -1,0 +1,16 @@
+<div class="surface-card p-4">
+    <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">@Label</p>
+    <div class="mt-3 flex items-end justify-between gap-3">
+        <h3 class="text-2xl font-semibold text-[var(--text-strong)]">@Value</h3>
+        <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium @(DeltaPositive ? "badge-success" : "badge-warning")">@Delta</span>
+    </div>
+    <p class="mt-2 text-xs text-[var(--text-muted)]">@Hint</p>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Value { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Delta { get; set; } = string.Empty;
+    [Parameter] public bool DeltaPositive { get; set; }
+    [Parameter] public string Hint { get; set; } = string.Empty;
+}

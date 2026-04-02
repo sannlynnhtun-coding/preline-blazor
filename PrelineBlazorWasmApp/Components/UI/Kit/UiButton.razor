@@ -1,0 +1,62 @@
+<button id="@Id"
+        type="@Type"
+        class="@CssClass"
+        disabled="@IsDisabled"
+        aria-label="@AriaLabel"
+        @onclick="OnClick"
+        @attributes="AdditionalAttributes">
+    @if (Loading)
+    {
+        <span class="ui-spinner" aria-hidden="true"></span>
+    }
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+</button>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+    [Parameter] public string Type { get; set; } = "button";
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public UiVariant Variant { get; set; } = UiVariant.Primary;
+    [Parameter] public UiSize Size { get; set; } = UiSize.Md;
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool Loading { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool IsDisabled => Disabled || Loading;
+
+    private string CssClass => string.Join(" ", new[]
+    {
+        "ui-btn",
+        GetVariantClass(),
+        GetSizeClass(),
+        Class
+    }.Where(static x => !string.IsNullOrWhiteSpace(x)));
+
+    private string GetVariantClass() => Variant switch
+    {
+        UiVariant.Primary => "ui-btn-primary",
+        UiVariant.Secondary => "ui-btn-secondary",
+        UiVariant.Success => "ui-btn-success",
+        UiVariant.Warning => "ui-btn-warning",
+        UiVariant.Danger => "ui-btn-danger",
+        UiVariant.Info => "ui-btn-info",
+        UiVariant.Light => "ui-btn-light",
+        UiVariant.Dark => "ui-btn-dark",
+        UiVariant.Ghost => "ui-btn-ghost",
+        UiVariant.Link => "ui-btn-link",
+        _ => "ui-btn-primary"
+    };
+
+    private string GetSizeClass() => Size switch
+    {
+        UiSize.Sm => "ui-btn-sm",
+        UiSize.Lg => "ui-btn-lg",
+        _ => "ui-btn-md"
+    };
+}

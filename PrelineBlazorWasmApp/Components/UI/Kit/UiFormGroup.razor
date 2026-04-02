@@ -1,0 +1,28 @@
+<div class="ui-form-group @Class" @attributes="AdditionalAttributes">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <label class="label-base" for="@For">@Label</label>
+    }
+
+    @ChildContent
+
+    @if (!string.IsNullOrWhiteSpace(Hint))
+    {
+        <p class="mt-1 text-xs text-[var(--text-muted)]">@Hint</p>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Error))
+    {
+        <p class="mt-1 text-xs text-red-600">@Error</p>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? For { get; set; }
+    [Parameter] public string? Hint { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

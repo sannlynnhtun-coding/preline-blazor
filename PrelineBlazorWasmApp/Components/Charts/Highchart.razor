@@ -1,0 +1,72 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<div id="@ChartId" class="@Class" style="height:@Height"></div>
+
+@code {
+    [Parameter] public string ChartId { get; set; } = $"hc-{Guid.NewGuid():N}";
+    [Parameter] public string ChartKind { get; set; } = "line";
+    [Parameter] public string OptionsJson { get; set; } = "{}";
+    [Parameter] public string Height { get; set; } = "320px";
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> OnPointClick { get; set; }
+
+    private DotNetObjectReference<Highchart>? _dotNetRef;
+    private string _lastOptions = string.Empty;
+    private bool _initialized;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await RenderOrUpdateAsync();
+            _initialized = true;
+            return;
+        }
+
+        if (_initialized && !string.Equals(_lastOptions, OptionsJson, StringComparison.Ordinal))
+        {
+            await RenderOrUpdateAsync();
+        }
+    }
+
+    private async Task RenderOrUpdateAsync()
+    {
+        _lastOptions = OptionsJson;
+
+        try
+        {
+            await JS.InvokeVoidAsync("dashboardCharts.renderOrUpdate", ChartId, ChartKind, OptionsJson, _dotNetRef);
+        }
+        catch
+        {
+            // Ignore transient JS interop issues during reconnects.
+        }
+    }
+
+    [JSInvokable]
+    public Task HandlePointClick(string payload)
+    {
+        if (!OnPointClick.HasDelegate)
+        {
+            return Task.CompletedTask;
+        }
+
+        return OnPointClick.InvokeAsync(payload);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("dashboardCharts.destroy", ChartId);
+        }
+        catch
+        {
+            // ignore
+        }
+
+        _dotNetRef?.Dispose();
+    }
+}

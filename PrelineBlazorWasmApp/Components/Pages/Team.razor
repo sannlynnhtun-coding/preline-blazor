@@ -1,0 +1,37 @@
+@page "/team"
+@inject IDashboardDataService DashboardData
+
+<PageTitle>Team</PageTitle>
+
+<PageHeading Title="Team" Description="Availability and responsibilities across key operational roles." />
+
+<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    @foreach (var member in TeamMembers)
+    {
+        <SectionCard Title="@member.Name" Description="@member.Role">
+            <div class="space-y-2 text-sm text-[var(--text-muted)]">
+                <p><span class="font-medium text-[var(--text-strong)]">Timezone:</span> @member.Timezone</p>
+                <p><span class="font-medium text-[var(--text-strong)]">Presence:</span> <StatusBadge Text="@member.Status" Tone="@ToneForStatus(member.Status)" /></p>
+            </div>
+        </SectionCard>
+    }
+</div>
+
+@code {
+    private IReadOnlyList<TeamMemberRow> TeamMembers { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        TeamMembers = await DashboardData.GetTeamMembersAsync();
+    }
+
+    private static string ToneForStatus(string status) => status.ToLowerInvariant() switch
+    {
+        "online" => "success",
+        "focus" => "info",
+        "away" => "warning",
+        _ => "neutral"
+    };
+}
+
+

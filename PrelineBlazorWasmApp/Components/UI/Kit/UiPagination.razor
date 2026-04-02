@@ -1,0 +1,67 @@
+<div class="ui-pagination-shell @Class" @attributes="AdditionalAttributes">
+    @if (ShowSummary)
+    {
+        <p class="text-xs text-[var(--text-muted)]">Showing @StartIndex-@EndIndex of @TotalCount @ResultLabel</p>
+    }
+
+    <nav class="ui-pagination" aria-label="Pagination">
+        <UiButton Variant="UiVariant.Secondary" Size="UiSize.Sm" Disabled="@IsOnFirstPage" OnClick="@(_ => ChangePage(CurrentPage - 1))">Prev</UiButton>
+
+        @foreach (var pageNumber in VisiblePages)
+        {
+            <UiButton Variant="@(pageNumber == CurrentPage ? UiVariant.Primary : UiVariant.Secondary)"
+                      Size="UiSize.Sm"
+                      OnClick="@(_ => ChangePage(pageNumber))">
+                @pageNumber
+            </UiButton>
+        }
+
+        <UiButton Variant="UiVariant.Secondary" Size="UiSize.Sm" Disabled="@IsOnLastPage" OnClick="@(_ => ChangePage(CurrentPage + 1))">Next</UiButton>
+    </nav>
+</div>
+
+@code {
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int PageSize { get; set; } = 10;
+    [Parameter] public int TotalCount { get; set; }
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
+    [Parameter] public string ResultLabel { get; set; } = "items";
+    [Parameter] public bool ShowSummary { get; set; } = true;
+    [Parameter] public string? Class { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling((TotalCount <= 0 ? 1 : TotalCount) / (double)Math.Max(1, PageSize)));
+    private bool IsOnFirstPage => CurrentPage <= 1;
+    private bool IsOnLastPage => CurrentPage >= TotalPages;
+    private int StartIndex => TotalCount <= 0 ? 0 : ((CurrentPage - 1) * PageSize) + 1;
+    private int EndIndex => TotalCount <= 0 ? 0 : Math.Min(CurrentPage * PageSize, TotalCount);
+
+    private IReadOnlyList<int> VisiblePages
+    {
+        get
+        {
+            if (TotalPages <= 5)
+            {
+                return Enumerable.Range(1, TotalPages).ToArray();
+            }
+
+            var start = Math.Max(1, CurrentPage - 2);
+            var end = Math.Min(TotalPages, start + 4);
+            start = Math.Max(1, end - 4);
+
+            return Enumerable.Range(start, (end - start) + 1).ToArray();
+        }
+    }
+
+    private Task ChangePage(int pageNumber)
+    {
+        var next = Math.Min(Math.Max(1, pageNumber), TotalPages);
+        if (next == CurrentPage)
+        {
+            return Task.CompletedTask;
+        }
+
+        return PageChanged.InvokeAsync(next);
+    }
+}
+

@@ -1,0 +1,15 @@
+<UiBadge Tone="@ResolveTone()" Text="@Text" />
+
+@code {
+    [Parameter, EditorRequired] public string Text { get; set; } = string.Empty;
+    [Parameter] public string Tone { get; set; } = "neutral";
+
+    private UiTone ResolveTone() => Tone.ToLowerInvariant() switch
+    {
+        "success" => UiTone.Success,
+        "warning" => UiTone.Warning,
+        "danger" => UiTone.Danger,
+        "info" => UiTone.Info,
+        _ => UiTone.Neutral
+    };
+}

@@ -1,0 +1,45 @@
+@if (Items.Count > 0)
+{
+    <ul class="ui-list-group @Class" @attributes="AdditionalAttributes">
+        @foreach (var item in Items)
+        {
+            var itemClass = item.Tone switch
+            {
+                UiTone.Success => "ui-list-group-item ui-list-group-item-success",
+                UiTone.Warning => "ui-list-group-item ui-list-group-item-warning",
+                UiTone.Danger => "ui-list-group-item ui-list-group-item-danger",
+                UiTone.Info => "ui-list-group-item ui-list-group-item-info",
+                _ => "ui-list-group-item"
+            };
+
+            <li class="@itemClass">
+                @if (!string.IsNullOrWhiteSpace(item.Href))
+                {
+                    <a class="ui-list-group-link" href="@item.Href">
+                        <span class="font-medium">@item.Title</span>
+                        @if (!string.IsNullOrWhiteSpace(item.Subtitle))
+                        {
+                            <span class="text-xs text-[var(--text-muted)]">@item.Subtitle</span>
+                        }
+                    </a>
+                }
+                else
+                {
+                    <div>
+                        <p class="font-medium text-sm text-[var(--text-strong)]">@item.Title</p>
+                        @if (!string.IsNullOrWhiteSpace(item.Subtitle))
+                        {
+                            <p class="text-xs text-[var(--text-muted)]">@item.Subtitle</p>
+                        }
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<UiListGroupItem> Items { get; set; } = [];
+    [Parameter] public string? Class { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

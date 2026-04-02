@@ -1,0 +1,50 @@
+@page "/activity"
+@inject IDashboardDataService DashboardData
+
+<PageTitle>Activity</PageTitle>
+
+<PageHeading Title="Activity" Description="Recent operational activity for auditing and triage." />
+
+<SectionCard Title="Live Feed" Description="Newest actions first.">
+    <ol class="relative border-s border-[var(--border-color)] ps-6">
+        @foreach (var item in ActivityItems)
+        {
+            <li class="mb-6 ms-2">
+                <span class="absolute -start-[7px] mt-1 h-3 w-3 rounded-full bg-[var(--theme-accent)]"></span>
+                <p class="text-sm text-[var(--text-strong)]">
+                    <span class="font-semibold">@item.Actor</span> @item.Action <span class="font-medium">@item.Target</span>
+                </p>
+                <p class="mt-1 text-xs text-[var(--text-muted)]">@Relative(item.OccurredAtUtc)</p>
+            </li>
+        }
+    </ol>
+</SectionCard>
+
+@code {
+    private IReadOnlyList<ActivityRow> ActivityItems { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        ActivityItems = await DashboardData.GetActivityAsync();
+    }
+
+    private static string Relative(DateTime value)
+    {
+        var delta = DateTime.UtcNow - value;
+
+        if (delta.TotalMinutes < 60)
+        {
+            return $"{Math.Max(1, (int)delta.TotalMinutes)} minutes ago";
+        }
+
+        if (delta.TotalHours < 24)
+        {
+            return $"{Math.Max(1, (int)delta.TotalHours)} hours ago";
+        }
+
+        return $"{Math.Max(1, (int)delta.TotalDays)} days ago";
+    }
+}
+
+
+

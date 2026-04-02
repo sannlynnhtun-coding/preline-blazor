@@ -1,0 +1,23 @@
+<label class="ui-switch">
+    <input id="@Id" type="checkbox" checked="@Checked" disabled="@Disabled" @onchange="HandleChange" @attributes="AdditionalAttributes" />
+    <span class="ui-switch-track" aria-hidden="true"></span>
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <span class="text-sm text-[var(--text-strong)]">@Label</span>
+    }
+</label>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+    [Parameter] public bool Checked { get; set; }
+    [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private Task HandleChange(ChangeEventArgs args)
+    {
+        var value = args.Value is bool boolValue && boolValue;
+        return CheckedChanged.InvokeAsync(value);
+    }
+}

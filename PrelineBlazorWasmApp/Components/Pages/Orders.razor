@@ -1,0 +1,119 @@
+@page "/orders"
+@inject IDashboardDataService DashboardData
+
+<PageTitle>Orders</PageTitle>
+
+<PageHeading Title="Orders" Description="Current order queue and fulfilment state." />
+
+<UiCard Title="Order List" Description="Recent orders and their processing stage.">
+    <TableControls SearchTerm="@Query.SearchTerm"
+                   SearchTermChanged="OnSearchChanged"
+                   SearchPlaceholder="Search order, customer, amount, status..."
+                   FilteredCount="@FilteredOrders.Count"
+                   CurrentPage="@Query.CurrentPage"
+                   PageSize="@Query.PageSize"
+                   PageSizeOptions="@Query.PageSizeOptions"
+                   PageChanged="OnPageChanged"
+                   PageSizeChanged="OnPageSizeChanged"
+                   ResultLabel="orders" />
+
+    <UiTable Header="@HeaderTemplate">
+        @if (PagedOrders.Count == 0)
+        {
+            <tr>
+                <td colspan="5" class="px-4 py-8 text-center text-sm text-[var(--text-muted)]">No orders match your search.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var order in PagedOrders)
+            {
+                <tr>
+                    <td>@order.OrderNo</td>
+                    <td>@order.Customer</td>
+                    <td>@order.Amount</td>
+                    <td><UiBadge Text="@order.Status" Tone="@ToneForStatus(order.Status)" /></td>
+                    <td>@order.CreatedOn.ToString("MMM dd, yyyy")</td>
+                </tr>
+            }
+        }
+    </UiTable>
+</UiCard>
+
+@code {
+    private readonly TableQueryState Query = new();
+    private IReadOnlyList<OrderRow> OrderList { get; set; } = [];
+
+    private RenderFragment HeaderTemplate => @<tr>
+        <th>Order</th>
+        <th>Customer</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Created</th>
+    </tr>;
+
+    private IReadOnlyList<OrderRow> FilteredOrders => OrderList
+        .Where(OrderMatches)
+        .ToList();
+
+    private IReadOnlyList<OrderRow> PagedOrders
+    {
+        get
+        {
+            var filtered = FilteredOrders;
+            Query.ClampPage(filtered.Count);
+            return filtered
+                .Skip((Query.CurrentPage - 1) * Query.PageSize)
+                .Take(Query.PageSize)
+                .ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        OrderList = await DashboardData.GetOrdersAsync();
+    }
+
+    private Task OnSearchChanged(string value)
+    {
+        Query.SearchTerm = value;
+        Query.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private Task OnPageChanged(int page)
+    {
+        Query.CurrentPage = page;
+        return Task.CompletedTask;
+    }
+
+    private Task OnPageSizeChanged(int pageSize)
+    {
+        Query.PageSize = pageSize;
+        Query.ResetPage();
+        return Task.CompletedTask;
+    }
+
+    private bool OrderMatches(OrderRow order)
+    {
+        if (string.IsNullOrWhiteSpace(Query.SearchTerm))
+        {
+            return true;
+        }
+
+        var q = Query.SearchTerm.Trim();
+        return order.OrderNo.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || order.Customer.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || order.Amount.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || order.Status.Contains(q, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static UiTone ToneForStatus(string status) => status.ToLowerInvariant() switch
+    {
+        "fulfilled" => UiTone.Success,
+        "processing" => UiTone.Info,
+        "pending" => UiTone.Warning,
+        "cancelled" => UiTone.Danger,
+        _ => UiTone.Neutral
+    };
+}

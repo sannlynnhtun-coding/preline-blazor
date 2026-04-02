@@ -1,0 +1,69 @@
+<div class="table-toolbar">
+    <div class="relative w-full sm:max-w-sm">
+        <span class="pointer-events-none absolute inset-y-0 start-3 flex items-center text-[var(--text-muted)]"><svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></span>
+        <UiInput Value="@SearchTerm"
+                 ValueChanged="HandleSearchInput"
+                 Placeholder="@SearchPlaceholder"
+                 Class="ps-9"
+                 AriaLabel="@SearchPlaceholder" />
+    </div>
+
+    <div class="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+        <span>Rows</span>
+        <UiSelect Value="@PageSizeValue"
+                  ValueChanged="HandlePageSizeChanged"
+                  Class="h-9 w-20 py-1 text-sm"
+                  Options="@PageSizeSelectOptions"
+                  AriaLabel="Rows per page" />
+    </div>
+</div>
+
+<div class="mt-3">
+    <UiPagination CurrentPage="@CurrentPage"
+                  PageSize="@PageSize"
+                  TotalCount="@FilteredCount"
+                  ResultLabel="@ResultLabel"
+                  PageChanged="ChangePage" />
+</div>
+
+@code {
+    [Parameter] public string SearchTerm { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> SearchTermChanged { get; set; }
+
+    [Parameter] public int FilteredCount { get; set; }
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int PageSize { get; set; } = 10;
+    [Parameter] public IReadOnlyList<int> PageSizeOptions { get; set; } = [5, 10, 20];
+
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
+    [Parameter] public EventCallback<int> PageSizeChanged { get; set; }
+
+    [Parameter] public string SearchPlaceholder { get; set; } = "Search records...";
+    [Parameter] public string ResultLabel { get; set; } = "results";
+
+    private string PageSizeValue => PageSize.ToString();
+
+    private IReadOnlyList<UiSelectOption> PageSizeSelectOptions => PageSizeOptions
+        .Select(x => new UiSelectOption(x.ToString(), x.ToString()))
+        .ToArray();
+
+    private Task HandleSearchInput(string? value)
+    {
+        return SearchTermChanged.InvokeAsync(value ?? string.Empty);
+    }
+
+    private async Task HandlePageSizeChanged(string? value)
+    {
+        if (!int.TryParse(value, out var size))
+        {
+            return;
+        }
+
+        await PageSizeChanged.InvokeAsync(size);
+    }
+
+    private Task ChangePage(int page)
+    {
+        return PageChanged.InvokeAsync(page);
+    }
+}

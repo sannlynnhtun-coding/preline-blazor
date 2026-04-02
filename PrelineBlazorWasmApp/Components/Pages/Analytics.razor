@@ -1,0 +1,56 @@
+@page "/analytics"
+@inject IDashboardDataService DashboardData
+
+<PageTitle>Analytics</PageTitle>
+
+<PageHeading Title="Analytics" Description="Growth, acquisition, and engagement trends for this workspace." />
+
+<div class="grid gap-4 xl:grid-cols-3">
+    <SectionCard Class="xl:col-span-2" Title="Weekly Signups" Description="Daily account creation trend for the last 7 days.">
+        <Highchart ChartId="analytics-signups" ChartKind="areaspline" Height="300px" OptionsJson="@SignupsChartJson" />
+    </SectionCard>
+    <SectionCard Title="Pipeline Distribution" Description="Top contributing acquisition channels.">
+        <Highchart ChartId="analytics-pipeline" ChartKind="pie" Height="300px" OptionsJson="@ChannelChartJson" />
+    </SectionCard>
+</div>
+
+<div class="mt-4 grid gap-4 xl:grid-cols-2">
+    <SectionCard Title="Monthly Revenue" Description="12-month MRR progression.">
+        <Highchart ChartId="analytics-revenue" ChartKind="areaspline" Height="280px" OptionsJson="@RevenueChartJson" />
+    </SectionCard>
+
+    <SectionCard Title="KPI Snapshot" Description="Current period performance signals.">
+        <div class="grid gap-3 sm:grid-cols-2">
+            @foreach (var kpi in Kpis)
+            {
+                <div class="rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] p-3">
+                    <p class="text-xs uppercase tracking-wide text-[var(--text-muted)]">@kpi.Label</p>
+                    <p class="mt-2 text-xl font-semibold text-[var(--text-strong)]">@kpi.Value</p>
+                    <p class="mt-1 text-xs @(kpi.DeltaPositive ? "text-emerald-600" : "text-rose-600")">@kpi.Delta</p>
+                </div>
+            }
+        </div>
+    </SectionCard>
+</div>
+
+@code {
+    private IReadOnlyList<KpiMetric> Kpis { get; set; } = [];
+    private string SignupsChartJson { get; set; } = "{}";
+    private string ChannelChartJson { get; set; } = "{}";
+    private string RevenueChartJson { get; set; } = "{}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Kpis = await DashboardData.GetKpisAsync();
+
+        var signups = await DashboardData.GetSignupsSeriesAsync();
+        var channels = await DashboardData.GetChannelSharesAsync();
+        var revenue = await DashboardData.GetRevenueSeriesAsync();
+
+        SignupsChartJson = ChartOptionsFactory.CreateColumnOptions(signups, "signups");
+        ChannelChartJson = ChartOptionsFactory.CreateDonutOptions(channels);
+        RevenueChartJson = ChartOptionsFactory.CreateRevenueLineOptions(revenue);
+    }
+}
+
+

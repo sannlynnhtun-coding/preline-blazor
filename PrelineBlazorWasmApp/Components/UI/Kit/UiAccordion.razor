@@ -1,0 +1,63 @@
+@if (Items.Count > 0)
+{
+    <div class="ui-accordion @Class" @attributes="AdditionalAttributes">
+        @foreach (var item in Items)
+        {
+            var isOpen = IsOpen(item.Key);
+            <section class="ui-accordion-item">
+                <button type="button" class="ui-accordion-trigger" @onclick="() => Toggle(item.Key)">
+                    <span>@item.Title</span>
+                    <span class="text-xs text-[var(--text-muted)]">@(isOpen ? "-" : "+")</span>
+                </button>
+                @if (isOpen)
+                {
+                    <div class="ui-accordion-content">
+                        @item.Content
+                    </div>
+                }
+            </section>
+        }
+    </div>
+}
+
+@code {
+    private readonly HashSet<string> _openKeys = [];
+
+    [Parameter] public IReadOnlyList<UiAccordionItem> Items { get; set; } = [];
+    [Parameter] public bool SingleOpen { get; set; } = true;
+    [Parameter] public string? Class { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (_openKeys.Count == 0)
+        {
+            foreach (var item in Items.Where(x => x.IsInitiallyOpen))
+            {
+                _openKeys.Add(item.Key);
+                if (SingleOpen)
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    private bool IsOpen(string key) => _openKeys.Contains(key);
+
+    private void Toggle(string key)
+    {
+        if (_openKeys.Contains(key))
+        {
+            _openKeys.Remove(key);
+            return;
+        }
+
+        if (SingleOpen)
+        {
+            _openKeys.Clear();
+        }
+
+        _openKeys.Add(key);
+    }
+}

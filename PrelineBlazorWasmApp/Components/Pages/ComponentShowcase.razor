@@ -1,0 +1,244 @@
+@page "/components"
+
+<PageTitle>Components</PageTitle>
+
+<PageHeading Title="UI Kit Catalog" Description="Bootstrap-inspired reusable Blazor components built on theme-aware tokens." />
+
+<div class="grid gap-4 xl:grid-cols-2">
+    <UiCard Title="Buttons" Description="Variants, sizes, loading, and disabled states.">
+        <div class="flex flex-wrap gap-2">
+            <UiButton Variant="UiVariant.Primary">Primary</UiButton>
+            <UiButton Variant="UiVariant.Secondary">Secondary</UiButton>
+            <UiButton Variant="UiVariant.Success">Success</UiButton>
+            <UiButton Variant="UiVariant.Warning">Warning</UiButton>
+            <UiButton Variant="UiVariant.Danger">Danger</UiButton>
+            <UiButton Variant="UiVariant.Info">Info</UiButton>
+            <UiButton Variant="UiVariant.Ghost">Ghost</UiButton>
+            <UiButton Variant="UiVariant.Link">Link</UiButton>
+            <UiButton Variant="UiVariant.Primary" Loading="true">Saving</UiButton>
+        </div>
+    </UiCard>
+
+    <UiCard Title="Badges + Alerts" Description="Semantic tones for statuses and feedback.">
+        <div class="flex flex-wrap gap-2">
+            <UiBadge Text="Neutral" Tone="UiTone.Neutral" />
+            <UiBadge Text="Success" Tone="UiTone.Success" />
+            <UiBadge Text="Warning" Tone="UiTone.Warning" />
+            <UiBadge Text="Danger" Tone="UiTone.Danger" />
+            <UiBadge Text="Info" Tone="UiTone.Info" />
+        </div>
+        <div class="mt-3 space-y-2">
+            <UiAlert Tone="UiTone.Info" Title="Heads up">This is an informational alert.</UiAlert>
+            <UiAlert Tone="UiTone.Success" Title="Saved" Dismissible="true">Your settings were updated.</UiAlert>
+        </div>
+    </UiCard>
+</div>
+
+<div class="mt-4 grid gap-4 xl:grid-cols-3">
+    <UiCard Class="xl:col-span-2" Title="Forms" Description="Typed input controls and grouped labels.">
+        <div class="grid gap-3 sm:grid-cols-2">
+            <UiFormGroup Label="Workspace name" For="workspace-name">
+                <UiInput Id="workspace-name" Value="Operations Team" />
+            </UiFormGroup>
+            <UiFormGroup Label="Region" For="workspace-region">
+                <UiSelect Id="workspace-region" Options="@RegionOptions" Value="global" />
+            </UiFormGroup>
+            <UiFormGroup Label="Description" Class="sm:col-span-2">
+                <UiTextarea Value="This workspace tracks commercial operations." Rows="3" />
+            </UiFormGroup>
+            <div class="sm:col-span-2 flex flex-wrap items-center gap-4">
+                <UiCheckbox Label="Enable email notifications" Checked="true" />
+                <UiSwitch Label="Require MFA" Checked="true" />
+            </div>
+        </div>
+    </UiCard>
+
+    <UiCard Title="Navigation" Description="Breadcrumb and tabs.">
+        <UiBreadcrumb Items="@Breadcrumbs" />
+        <div class="mt-3">
+            <UiTabs Items="@TabItems" ActiveKey="@ActiveTab" ActiveKeyChanged="OnTabChanged" />
+        </div>
+    </UiCard>
+</div>
+
+<div class="mt-4 grid gap-4 xl:grid-cols-3">
+    <UiCard Class="xl:col-span-2" Title="Data Table + Pagination" Description="Shared table and pager primitives.">
+        <UiTable Header="@TableHeader">
+            <tr>
+                <td>UiButton</td>
+                <td>Action controls</td>
+                <td><UiBadge Text="Ready" Tone="UiTone.Success" /></td>
+            </tr>
+            <tr>
+                <td>UiModal</td>
+                <td>Dialog overlays</td>
+                <td><UiBadge Text="Ready" Tone="UiTone.Success" /></td>
+            </tr>
+            <tr>
+                <td>UiPagination</td>
+                <td>Page controls and summary</td>
+                <td><UiBadge Text="Ready" Tone="UiTone.Success" /></td>
+            </tr>
+        </UiTable>
+
+        <div class="mt-4">
+            <UiPagination CurrentPage="2" PageSize="10" TotalCount="52" ResultLabel="components" />
+        </div>
+    </UiCard>
+
+    <UiCard Title="List + Accordion" Description="Composable grouped content patterns.">
+        <UiListGroup Items="@ListItems" />
+        <div class="mt-3">
+            <UiAccordion Items="@AccordionItems" />
+        </div>
+    </UiCard>
+</div>
+
+<div class="mt-4">
+    <UiCard Title="Overlays" Description="Blazor-first modal, drawer, dropdown, and toast behavior.">
+        <div class="flex flex-wrap gap-2">
+            <UiButton Variant="UiVariant.Primary" OnClick="OpenModal">Open Modal</UiButton>
+            <UiButton Variant="UiVariant.Secondary" OnClick="OpenDrawer">Open Drawer</UiButton>
+            <UiButton Variant="UiVariant.Info" OnClick="ShowToast">Show Toast</UiButton>
+            <UiDropdown IsOpen="@IsDropdownOpen" IsOpenChanged="OnDropdownChanged">
+                <TriggerContent>
+                    <UiButton Variant="UiVariant.Secondary">Dropdown</UiButton>
+                </TriggerContent>
+                <ChildContent>
+                    <a class="dropdown-item" href="/dashboard">Go to dashboard</a>
+                    <a class="dropdown-item" href="/settings">Go to settings</a>
+                </ChildContent>
+            </UiDropdown>
+        </div>
+
+        <div class="mt-4 rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] p-3">
+            <p class="text-xs text-[var(--text-muted)]">Usage sample</p>
+            <pre class="mt-2 overflow-x-auto text-xs text-[var(--text-muted)]"><code>&lt;UiButton Variant="UiVariant.Primary"&gt;Save&lt;/UiButton&gt;
+&lt;UiModal IsOpen="isOpen" IsOpenChanged="OnModalChanged" Title="Confirm" /&gt;</code></pre>
+        </div>
+    </UiCard>
+</div>
+
+<UiModal IsOpen="@IsModalOpen" IsOpenChanged="OnModalChanged" Title="Confirm Changes" CloseOnBackdrop="true">
+    <ChildContent>
+        Changes will be applied across the workspace. Continue?
+    </ChildContent>
+    <Footer>
+        <UiButton Variant="UiVariant.Ghost" OnClick="CloseModal">Cancel</UiButton>
+        <UiButton Variant="UiVariant.Primary" OnClick="CloseModal">Confirm</UiButton>
+    </Footer>
+</UiModal>
+
+<UiDrawer IsOpen="@IsDrawerOpen" IsOpenChanged="OnDrawerChanged" Title="Drawer Panel" Placement="UiPlacement.End">
+    <p class="mb-3">This drawer can host filters, quick actions, or contextual details.</p>
+    <UiButton Variant="UiVariant.Primary" OnClick="CloseDrawer">Done</UiButton>
+</UiDrawer>
+
+<UiToast IsOpen="@IsToastOpen" IsOpenChanged="OnToastChanged" Title="Saved" Message="Component demo state updated." Tone="UiTone.Success" AutoHideMs="2600" />
+
+@code {
+    private bool IsModalOpen { get; set; }
+    private bool IsDrawerOpen { get; set; }
+    private bool IsDropdownOpen { get; set; }
+    private bool IsToastOpen { get; set; }
+    private string? ActiveTab { get; set; } = "profile";
+
+    private IReadOnlyList<UiSelectOption> RegionOptions { get; } =
+    [
+        new("global", "Global"),
+        new("us", "US"),
+        new("emea", "EMEA")
+    ];
+
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs { get; } =
+    [
+        new("Home", "/dashboard"),
+        new("Components")
+    ];
+
+    private IReadOnlyList<UiTabItem> TabItems =>
+    [
+        new("profile", "Profile", @<p class="text-sm text-[var(--text-muted)]">Profile settings content.</p>),
+        new("security", "Security", @<p class="text-sm text-[var(--text-muted)]">Security controls content.</p>)
+    ];
+
+    private RenderFragment TableHeader => @<tr>
+        <th>Component</th>
+        <th>Purpose</th>
+        <th>Status</th>
+    </tr>;
+
+    private IReadOnlyList<UiListGroupItem> ListItems { get; } =
+    [
+        new("Design tokens", "Theme variables and semantic color usage", UiTone.Info),
+        new("Accessibility", "Focus states and keyboard-friendly controls", UiTone.Success),
+        new("Responsive", "Mobile-safe sizing and spacing", UiTone.Warning)
+    ];
+
+    private IReadOnlyList<UiAccordionItem> AccordionItems =>
+    [
+        new("api", "API Design", @<p>All components support common typed parameters and class pass-through.</p>, true),
+        new("theme", "Theme Integration", @<p>Components inherit palette, mode, and custom accent tokens.</p>),
+        new("interop", "Interop Strategy", @<p>Only focused JS helpers are used for timer/focus concerns.</p>)
+    ];
+
+    private Task OnModalChanged(bool value)
+    {
+        IsModalOpen = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnDrawerChanged(bool value)
+    {
+        IsDrawerOpen = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnDropdownChanged(bool value)
+    {
+        IsDropdownOpen = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnToastChanged(bool value)
+    {
+        IsToastOpen = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnTabChanged(string? key)
+    {
+        ActiveTab = key;
+        return Task.CompletedTask;
+    }
+
+    private Task OpenModal(MouseEventArgs _)
+    {
+        IsModalOpen = true;
+        return Task.CompletedTask;
+    }
+
+    private Task CloseModal(MouseEventArgs _)
+    {
+        IsModalOpen = false;
+        return Task.CompletedTask;
+    }
+
+    private Task OpenDrawer(MouseEventArgs _)
+    {
+        IsDrawerOpen = true;
+        return Task.CompletedTask;
+    }
+
+    private Task CloseDrawer(MouseEventArgs _)
+    {
+        IsDrawerOpen = false;
+        return Task.CompletedTask;
+    }
+
+    private Task ShowToast(MouseEventArgs _)
+    {
+        IsToastOpen = true;
+        return Task.CompletedTask;
+    }
+}

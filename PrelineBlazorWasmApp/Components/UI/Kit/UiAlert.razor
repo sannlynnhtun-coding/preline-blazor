@@ -1,0 +1,69 @@
+@if (_visible)
+{
+    <div id="@Id" class="@CssClass" role="alert" @attributes="AdditionalAttributes">
+        <div class="flex items-start gap-3">
+            <div class="flex-1 min-w-0">
+                @if (!string.IsNullOrWhiteSpace(Title))
+                {
+                    <h3 class="text-sm font-semibold text-[var(--text-strong)]">@Title</h3>
+                }
+                <div class="text-sm text-[var(--text-muted)]">
+                    @if (ChildContent is not null)
+                    {
+                        @ChildContent
+                    }
+                    else
+                    {
+                        @Message
+                    }
+                </div>
+            </div>
+            @if (Dismissible)
+            {
+                <UiButton Variant="UiVariant.Ghost" Size="UiSize.Sm" Class="px-2 py-1" AriaLabel="Dismiss alert" OnClick="Dismiss">Close</UiButton>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private bool _visible = true;
+
+    [Parameter] public string? Id { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string Message { get; set; } = string.Empty;
+    [Parameter] public UiTone Tone { get; set; } = UiTone.Info;
+    [Parameter] public bool Dismissible { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public EventCallback OnDismiss { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (!_visible && !Dismissible)
+        {
+            _visible = true;
+        }
+    }
+
+    private async Task Dismiss(MouseEventArgs _)
+    {
+        _visible = false;
+        await OnDismiss.InvokeAsync();
+    }
+
+    private string CssClass => string.Join(" ", new[]
+    {
+        "ui-alert",
+        Tone switch
+        {
+            UiTone.Success => "ui-alert-success",
+            UiTone.Warning => "ui-alert-warning",
+            UiTone.Danger => "ui-alert-danger",
+            UiTone.Info => "ui-alert-info",
+            _ => "ui-alert-neutral"
+        },
+        Class
+    }.Where(static x => !string.IsNullOrWhiteSpace(x)));
+}

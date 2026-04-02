@@ -1,0 +1,21 @@
+<div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-[var(--text-strong)]">@Title</h1>
+        @if (!string.IsNullOrWhiteSpace(Description))
+        {
+            <p class="mt-1 text-sm text-[var(--text-muted)]">@Description</p>
+        }
+    </div>
+    @if (Actions is not null)
+    {
+        <div class="flex items-center gap-2">
+            @Actions
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? Actions { get; set; }
+}

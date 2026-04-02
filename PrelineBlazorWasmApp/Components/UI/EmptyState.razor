@@ -1,0 +1,9 @@
+<div class="surface-card p-10 text-center">
+    <h3 class="text-sm font-semibold text-[var(--text-strong)]">@Title</h3>
+    <p class="mt-2 text-sm text-[var(--text-muted)]">@Description</p>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "No records found";
+    [Parameter] public string Description { get; set; } = "Try changing filters or checking again later.";
+}

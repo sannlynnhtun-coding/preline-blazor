@@ -1,0 +1,83 @@
+@inject IJSRuntime JS
+
+@if (IsOpen)
+{
+    <div class="ui-overlay-backdrop" @onclick="HandleBackdropClick"></div>
+}
+
+<aside id="@Id"
+       class="@(IsOpen ? $"ui-drawer ui-drawer-open {PlacementClass}" : $"ui-drawer {PlacementClass}")"
+       tabindex="-1"
+       role="dialog"
+       aria-label="@Title"
+       @onkeydown="HandleKeyDown"
+       @attributes="AdditionalAttributes">
+    <header class="ui-drawer-header">
+        <h3 class="text-sm font-semibold text-[var(--text-strong)]">@Title</h3>
+        <UiButton Variant="UiVariant.Ghost" Size="UiSize.Sm" Class="px-2 py-1" OnClick="@(_ => Close())">Close</UiButton>
+    </header>
+    <div class="ui-drawer-body">
+        @ChildContent
+    </div>
+</aside>
+
+@code {
+    [Parameter] public string Id { get; set; } = $"ui-drawer-{Guid.NewGuid():N}";
+    [Parameter] public string Title { get; set; } = "Drawer";
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public bool CloseOnBackdrop { get; set; } = true;
+    [Parameter] public bool CloseOnEscape { get; set; } = true;
+    [Parameter] public UiPlacement Placement { get; set; } = UiPlacement.End;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string PlacementClass => Placement switch
+    {
+        UiPlacement.Start => "ui-drawer-start",
+        UiPlacement.Top => "ui-drawer-top",
+        UiPlacement.Bottom => "ui-drawer-bottom",
+        _ => "ui-drawer-end"
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsOpen)
+        {
+            await JS.InvokeVoidAsync("uiKit.focusFirst", Id);
+            await JS.InvokeVoidAsync("uiKit.trapFocus", Id);
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("uiKit.releaseFocusTrap", Id);
+        }
+    }
+
+    private async Task HandleBackdropClick()
+    {
+        if (!CloseOnBackdrop)
+        {
+            return;
+        }
+
+        await Close();
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (CloseOnEscape && args.Key == "Escape")
+        {
+            await Close();
+        }
+    }
+    private async Task Close()
+    {
+        await IsOpenChanged.InvokeAsync(false);
+        await JS.InvokeVoidAsync("uiKit.releaseFocusTrap", Id);
+        await OnClose.InvokeAsync();
+    }
+}
+
+
+
