@@ -1,118 +1,87 @@
 # Preline Blazor Admin Dashboard
 
-A production-style admin dashboard built with **Blazor (.NET 8)**, **Preline 4.x**, **Tailwind CSS v4**, and **Highcharts**.
+A high-performance, client-side admin dashboard template built with **.NET 8 Blazor**, **Tailwind CSS v4**, and **Preline UI**. This application runs entirely in the user's browser, making it ideal for static hosting environments and decoupled frontend architectures.
 
 ## Project Overview
 
-This project is a UI-first SaaS operations dashboard that demonstrates:
+This dashboard is a comprehensive UI foundation for SaaS operations, designed for speed and flexibility. It demonstrates:
 
-- A responsive admin shell (sidebar, topbar, breadcrumbs, mobile menu)
-- Multi-page business views (Dashboard, Analytics, Customers, Orders, Billing, Team, Tasks, Activity, Settings)
-- A reusable, Bootstrap-inspired Blazor component kit (`Ui*` components)
-- Theme personalization with mode + palette + custom color overrides
-- Theme-aware Highcharts integration with runtime chart restyling
-- Search + pagination behavior across operational tables
-
-The app currently uses seeded mock data through services, so the UI can be developed and validated before backend/API integration.
+- **Full Browser Execution**: A standalone frontend that processes all logic and UI interactions locally.
+- **Modern Design System**: Built on Preline 4.x and Tailwind CSS v4 for a sleek, enterprise-grade aesthetic.
+- **Dynamic Personalization**: Deeply integrated theme system allowing runtime changes to modes (Light/Dark/System), color palettes, and custom accent colors.
+- **Intelligent Data Viz**: Theme-aware Highcharts integration that automatically restyles charts based on the application's active palette.
+- **Production-Ready Components**: A robust library of reusable, typed Blazor components (`UiButton`, `UiCard`, `UiTable`, etc.).
+- **Zero-Backend Dependency**: Currently powered by seeded mock data services, enabling immediate UI development and validation.
 
 ## Tech Stack
 
-- **.NET 8 Blazor Web App** (Interactive Server)
-- **Preline** (`preline@^4.1.2`)
-- **Tailwind CSS v4** (`@tailwindcss/cli`, `@tailwindcss/forms`)
-- **Highcharts** (`highcharts@^12.5.0`)
+- **.NET 8 Blazor** (Client-side execution)
+- **Preline UI** (`preline@^4.1.2`)
+- **Tailwind CSS v4** (Modern CSS architecture)
+- **Highcharts** (Responsive, themeable data visualization)
 
 ## Key Features
 
-### 1. Reusable Component Library
-Typed reusable components are in:
+### 1. Reusable UI Kit
+A comprehensive suite of typed components is available in `PrelineBlazorWasmApp/Components/UI/Kit`. These include:
+- **Navigation**: Breadcrumbs, Tabs, Pagination.
+- **Forms**: Buttons, Inputs, Swatches, Selects, Checkboxes, Switches.
+- **Feedback**: Alerts, Badges, Toasts, Progress indicators.
+- **Containers**: Cards, Modals, Drawers, Accordions, List groups.
 
-- `PrelineBlazorApp/Components/UI/Kit`
+### 2. Advanced Theme Engine
+The application features a pervasive theme service that manages:
+- **Visual Modes**: Smooth transitions between Light, Dark, and System modes.
+- **Palette Presets**: Selectable color schemes (e.g., Indigo, Rose, Amber).
+- **Custom Overrides**: Ability for users to pick exact HEX codes for the primary brand color.
+- **Persistence**: All preferences are saved to local storage for a consistent user experience.
 
-Examples include:
-
-- `UiButton`, `UiBadge`, `UiAlert`, `UiCard`
-- `UiInput`, `UiSelect`, `UiTextarea`, `UiCheckbox`, `UiRadio`, `UiSwitch`, `UiFormGroup`
-- `UiTable`, `UiPagination`, `UiBreadcrumb`, `UiTabs`, `UiAccordion`, `UiListGroup`
-- `UiModal`, `UiDrawer`, `UiDropdown`, `UiToast`
-
-Shared enums/models are in:
-
-- `PrelineBlazorApp/Models/UI/Kit`
-
-### 2. Theme System
-Theme behavior supports:
-
-- `System / Light / Dark` mode
-- Global default palette
-- Global custom accent color
-- Per-page palette override
-- Per-page custom accent override
-- Persistent preferences in `localStorage`
-
-Precedence:
-
-`page custom > page palette > global custom > global palette > slate fallback`
-
-### 3. Highcharts Integration
-Charts are hosted through a reusable Blazor wrapper and styled from runtime theme tokens.
-When mode/palette/accent changes, charts restyle without page reload.
-
-### 4. Responsive UX
-- Sidebar overlay + burger menu on mobile
-- Responsive cards, tables, and controls
-- Theme-aware contrast handling for dark and light modes
-
-## Project Structure
-
-- `PrelineBlazorApp/Components/Layout` - app shell and navigation
-- `PrelineBlazorApp/Components/Pages` - route pages
-- `PrelineBlazorApp/Components/UI` - legacy wrappers and shared UI pieces
-- `PrelineBlazorApp/Components/UI/Kit` - new reusable typed UI kit
-- `PrelineBlazorApp/Components/Charts` - Highcharts Blazor component
-- `PrelineBlazorApp/Models` - dashboard/theme/ui models
-- `PrelineBlazorApp/Services` - navigation, theme, and mock dashboard data services
-- `PrelineBlazorApp/wwwroot/css` - Tailwind source (`site.css`) and output (`output.css`)
-- `PrelineBlazorApp/wwwroot/js` - dashboard/theme/chart/ui interop
+### 3. Responsive Architecture
+- **Adaptive Sidebar**: Collapsible menu with mobile overlay support.
+- **Fluid Layouts**: Responsive grids and tables that maintain usability across all screen sizes.
+- **Contrast Optimization**: Hand-tuned accessibility for both light and dark backgrounds.
 
 ## Getting Started
 
 ### Prerequisites
 
-- .NET 8 SDK
-- Node.js (npm)
+- **.NET 8 SDK**
+- **Node.js** (for Tailwind and asset management)
 
-### Install Dependencies
+### 1. Install Dependencies
+
+Navigate to the project directory and install the necessary npm packages:
 
 ```bash
-cd PrelineBlazorApp
+cd PrelineBlazorWasmApp
 npm install
 ```
 
-### Build Frontend Assets
+### 2. Build Assets
+
+Generate the CSS and copy vendor scripts to the web root:
 
 ```bash
 npm run build:assets
 ```
 
-### Run the App
+### 3. Run the Application
+
+Launch the development server:
 
 ```bash
-dotnet run --project PrelineBlazorApp.csproj
+dotnet run --project PrelineBlazorWasmApp.csproj
 ```
 
-### Development Scripts
+The application will be accessible at the URL provided in the console (usually `http://localhost:5000` or `https://localhost:5001`).
 
-From `PrelineBlazorApp`:
+## Development Workflow
 
-- `npm run build:css` - compile Tailwind once
-- `npm run watch:css` - watch Tailwind changes
-- `npm run copy:vendor` - copy Preline/Highcharts vendor JS into `wwwroot/js/vendor`
-- `npm run build:assets` - copy vendor JS + build CSS
+From the `PrelineBlazorWasmApp` directory:
 
-### Notes
+- `npm run watch:css`: Watch for Tailwind CSS changes during development.
+- `npm run build:css`: Compile and minify production CSS.
+- `npm run copy:vendor`: Refresh vendor scripts (Preline, Highcharts) in the `wwwroot/js` folder.
 
-- This pass focuses on frontend architecture and UX.
-- Authentication, authorization, and backend API integration are intentionally out of scope.
-- Data is currently mocked and ready to be swapped with real APIs later.
-
+---
+*Note: This project is focused on the frontend architecture and user experience. Authentication and real-time API integrations are intended to be implemented during the next phase of development.*
