@@ -1,195 +1,118 @@
-﻿# How to Install Preline UI and Tailwind CSS in a Blazor .NET 8 Project
+# Preline Blazor Admin Dashboard
 
-This guide will walk you through the steps to install and configure **Preline UI** and **Tailwind CSS** in a **Blazor .NET 8** project. By the end of this guide, you'll have a fully functional Blazor application with Preline UI components and Tailwind CSS styling.
+A production-style admin dashboard built with **Blazor (.NET 8)**, **Preline 4.x**, **Tailwind CSS v4**, and **Highcharts**.
 
----
+## Project Overview
 
-![Screenshot1](Screenshot1.png)
-![Screenshot2](Screenshot2.png)
-![Screenshot3](Screenshot3.png)
+This project is a UI-first SaaS operations dashboard that demonstrates:
 
-## Prerequisites
+- A responsive admin shell (sidebar, topbar, breadcrumbs, mobile menu)
+- Multi-page business views (Dashboard, Analytics, Customers, Orders, Billing, Team, Tasks, Activity, Settings)
+- A reusable, Bootstrap-inspired Blazor component kit (`Ui*` components)
+- Theme personalization with mode + palette + custom color overrides
+- Theme-aware Highcharts integration with runtime chart restyling
+- Search + pagination behavior across operational tables
 
-Before you begin, ensure you have the following installed:
+The app currently uses seeded mock data through services, so the UI can be developed and validated before backend/API integration.
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Node.js](https://nodejs.org/) (for npm commands)
-- A code editor like [Visual Studio](https://visualstudio.microsoft.com/) or [VS Code](https://code.visualstudio.com/)
+## Tech Stack
 
----
+- **.NET 8 Blazor Web App** (Interactive Server)
+- **Preline** (`preline@^4.1.2`)
+- **Tailwind CSS v4** (`@tailwindcss/cli`, `@tailwindcss/forms`)
+- **Highcharts** (`highcharts@^12.5.0`)
 
-## Step 1: Create a New Blazor Project
+## Key Features
 
-1. Open a terminal or command prompt.
-2. Run the following command to create a new Blazor project:
+### 1. Reusable Component Library
+Typed reusable components are in:
 
-   ```bash
-   dotnet new blazor -n MyBlazorApp
-   ```
+- `PrelineBlazorApp/Components/UI/Kit`
 
-3. Navigate to the project directory:
+Examples include:
 
-   ```bash
-   cd MyBlazorApp
-   ```
+- `UiButton`, `UiBadge`, `UiAlert`, `UiCard`
+- `UiInput`, `UiSelect`, `UiTextarea`, `UiCheckbox`, `UiRadio`, `UiSwitch`, `UiFormGroup`
+- `UiTable`, `UiPagination`, `UiBreadcrumb`, `UiTabs`, `UiAccordion`, `UiListGroup`
+- `UiModal`, `UiDrawer`, `UiDropdown`, `UiToast`
 
----
+Shared enums/models are in:
 
-## Step 2: Install Tailwind CSS
+- `PrelineBlazorApp/Models/UI/Kit`
 
-1. Initialize a `package.json` file (if it doesn't already exist):
+### 2. Theme System
+Theme behavior supports:
 
-   ```bash
-   npm init -y
-   ```
+- `System / Light / Dark` mode
+- Global default palette
+- Global custom accent color
+- Per-page palette override
+- Per-page custom accent override
+- Persistent preferences in `localStorage`
 
-2. Install Tailwind CSS and its dependencies:
+Precedence:
 
-   ```bash
-   npm install -D tailwindcss@3 postcss autoprefixer
-   ```
+`page custom > page palette > global custom > global palette > slate fallback`
 
-3. Generate the `tailwind.config.js` file:
+### 3. Highcharts Integration
+Charts are hosted through a reusable Blazor wrapper and styled from runtime theme tokens.
+When mode/palette/accent changes, charts restyle without page reload.
 
-   ```bash
-   npx tailwindcss init
-   ```
+### 4. Responsive UX
+- Sidebar overlay + burger menu on mobile
+- Responsive cards, tables, and controls
+- Theme-aware contrast handling for dark and light modes
 
-4. Open the `tailwind.config.js` file and configure it to include your Blazor files:
+## Project Structure
 
-   ```javascript
-   /** @type {import('tailwindcss').Config} */
-   module.exports = {
-     content: [
-       "./**/*.razor",
-       "./**/*.html",
-       "./**/*.cshtml",
-     ],
-     darkMode: 'class', // Add this line for default disabled dark mode
-     theme: {
-       extend: {},
-     },
-     plugins: [],
-   }
-   ```
+- `PrelineBlazorApp/Components/Layout` - app shell and navigation
+- `PrelineBlazorApp/Components/Pages` - route pages
+- `PrelineBlazorApp/Components/UI` - legacy wrappers and shared UI pieces
+- `PrelineBlazorApp/Components/UI/Kit` - new reusable typed UI kit
+- `PrelineBlazorApp/Components/Charts` - Highcharts Blazor component
+- `PrelineBlazorApp/Models` - dashboard/theme/ui models
+- `PrelineBlazorApp/Services` - navigation, theme, and mock dashboard data services
+- `PrelineBlazorApp/wwwroot/css` - Tailwind source (`site.css`) and output (`output.css`)
+- `PrelineBlazorApp/wwwroot/js` - dashboard/theme/chart/ui interop
 
-5. Add the following Tailwind directives to the `wwwroot/css/site.css` file:
+## Getting Started
 
-   ```css
-   @tailwind base;
-   @tailwind components;
-   @tailwind utilities;
-   ```
+### Prerequisites
 
-6. Add a script to your `package.json` to build Tailwind CSS:
+- .NET 8 SDK
+- Node.js (npm)
 
-   ```json
-   "scripts": {
-     "build:css": "tailwindcss -i ./wwwroot/css/site.css -o ./wwwroot/css/output.css --minify"
-   }
-   ```
-
-7. Run the script to generate the Tailwind CSS file:
-
-   ```bash
-   npm run build:css
-   ```
-
-8. Link the generated CSS file in your `_Host.cshtml` or `App.razor` (for Blazor Server) or `index.html` (for Blazor WebAssembly):
-
-   ```html
-   <link href="css/output.css" rel="stylesheet" />
-   ```
-
----
-
-## Step 3: Install Preline UI
-
-1. Install Preline UI via npm:
-
-   ```bash
-   npm install preline
-   ```
-
-2. Add Preline's JavaScript to your `_Host.cshtml` or `App.razor` (for Blazor Server) or `index.html` (for Blazor WebAssembly):
-
-   ```html
-   <script src="../node_modules/preline/dist/preline.js"></script>
-   ```
-
-3. Initialize Preline UI in your Blazor component or `_Host.cshtml` or `App.razor`:
-
-   ```html
-   <script>
-     window.initializePreline = () => {
-       window.HSStaticMethods.autoInit();
-     };
-   </script>
-   ```
-
-4. Call the initialization in `MainLayout.razor`:
-
-   ```csharp
-   @code {
-     protected override async Task OnAfterRenderAsync(bool firstRender) {
-       if (firstRender) {
-         await JSRuntime.InvokeVoidAsync("initializePreline");
-       }
-     }
-   }
-   ```
-
-5. **Use a Static File Provider**
-
-   Add a static file provider to serve files from the `node_modules` directory:
-
-   ```csharp
-   app.UseHttpsRedirection();
-
-   app.UseStaticFiles();
-   app.UseAntiforgery();
-
-   // Serve static files from node_modules
-   var nodeModulesPath = Path.Combine(builder.Environment.ContentRootPath, "node_modules");
-   app.UseStaticFiles(new StaticFileOptions
-   {
-       FileProvider = new PhysicalFileProvider(nodeModulesPath),
-       RequestPath = "/node_modules"
-   });
-
-   app.MapRazorComponents<App>()
-       .AddInteractiveServerRenderMode();
-
-   app.Run();
-   ```
-
----
-
-## Step 4: Automate Tailwind CSS Builds
-
-To automatically rebuild Tailwind CSS when your project changes, add the following script to your `package.json`:
-
-```json
-"scripts": {
-  "watch:css": "tailwindcss -i ./wwwroot/css/site.css -o ./wwwroot/css/output.css --watch"
-}
-```
-
-Run the script in a separate terminal:
+### Install Dependencies
 
 ```bash
-npm run watch:css
+cd PrelineBlazorApp
+npm install
 ```
 
----
+### Build Frontend Assets
 
-## Conclusion
+```bash
+npm run build:assets
+```
 
-You've successfully installed and configured **Preline UI** and **Tailwind CSS** in your Blazor .NET 8 project! You can now use Preline's prebuilt components and Tailwind's utility classes to build beautiful and responsive Blazor applications.
+### Run the App
 
-For more information, check out the official documentation:
+```bash
+dotnet run --project PrelineBlazorApp.csproj
+```
 
-- [Tailwind CSS](https://tailwindcss.com/docs)
-- [Preline UI](https://preline.co/docs)
+### Development Scripts
 
-Happy coding! 🚀
+From `PrelineBlazorApp`:
+
+- `npm run build:css` - compile Tailwind once
+- `npm run watch:css` - watch Tailwind changes
+- `npm run copy:vendor` - copy Preline/Highcharts vendor JS into `wwwroot/js/vendor`
+- `npm run build:assets` - copy vendor JS + build CSS
+
+### Notes
+
+- This pass focuses on frontend architecture and UX.
+- Authentication, authorization, and backend API integration are intentionally out of scope.
+- Data is currently mocked and ready to be swapped with real APIs later.
+
