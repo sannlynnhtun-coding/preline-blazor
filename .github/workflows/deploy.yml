@@ -51,5 +51,6 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-version: latest
           vercel-args: '--prod'
           working-directory: ./publish_output/wwwroot # Vercel needs the static assets folder
