@@ -1,0 +1,78 @@
+@using PrelineMvcApp.Models.Dashboard
+@{
+    ViewData["Title"] = "Analytics";
+    var kpis = ViewBag.Kpis as IReadOnlyList<KpiMetric>;
+}
+
+<div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-[var(--text-strong)]">Analytics</h1>
+        <p class="mt-1 text-sm text-[var(--text-muted)]">Growth, acquisition, and engagement trends for this workspace.</p>
+    </div>
+</div>
+
+<div class="grid gap-4 xl:grid-cols-3">
+    <div class="xl:col-span-2 surface-card p-5">
+        <h3 class="text-lg font-semibold text-[var(--text-strong)]">Weekly Signups</h3>
+        <p class="text-sm text-[var(--text-muted)] mb-4">Daily account creation trend for the last 7 days.</p>
+        <div id="analytics-signups" style="height: 300px;"></div>
+    </div>
+    <div class="surface-card p-5">
+        <h3 class="text-lg font-semibold text-[var(--text-strong)]">Pipeline Distribution</h3>
+        <p class="text-sm text-[var(--text-muted)] mb-4">Top contributing acquisition channels.</p>
+        <div id="analytics-pipeline" style="height: 300px;"></div>
+    </div>
+</div>
+
+<div class="mt-4 grid gap-4 xl:grid-cols-2">
+    <div class="surface-card p-5">
+        <h3 class="text-lg font-semibold text-[var(--text-strong)]">Monthly Revenue</h3>
+        <p class="text-sm text-[var(--text-muted)] mb-4">12-month MRR progression.</p>
+        <div id="analytics-revenue" style="height: 280px;"></div>
+    </div>
+
+    <div class="surface-card p-5">
+        <h3 class="text-lg font-semibold text-[var(--text-strong)]">KPI Snapshot</h3>
+        <p class="text-sm text-[var(--text-muted)] mb-4">Current period performance signals.</p>
+        <div class="grid gap-3 sm:grid-cols-2">
+            @if (kpis != null)
+            {
+                @foreach (var kpi in kpis)
+                {
+                    <div class="rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] p-3">
+                        <p class="text-xs uppercase tracking-wide text-[var(--text-muted)]">@kpi.Label</p>
+                        <p class="mt-2 text-xl font-semibold text-[var(--text-strong)]">@kpi.Value</p>
+                        <p class="mt-1 text-xs @(kpi.DeltaPositive ? "text-emerald-600" : "text-rose-600")">@kpi.Delta</p>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // In a real app we'd fetch this from the controller/API
+            const signupOptions = {
+                xAxis: { categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
+                series: [{ name: 'Signups', data: [112, 128, 140, 121, 154, 118, 132], type: 'column' }]
+            };
+            const pipelineOptions = {
+                series: [{ 
+                    name: 'Channels', 
+                    data: [['Organic', 36.4], ['Paid', 24.1], ['Partner', 17.3], ['Outbound', 12.5], ['Referral', 9.7]],
+                    type: 'pie' 
+                }]
+            };
+            const revenueOptions = {
+                xAxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] },
+                series: [{ name: 'Revenue', data: [148000, 156000, 171000, 179000, 188000, 196000, 208000, 219000, 232000, 249000, 264000, 284200], type: 'areaspline' }]
+            };
+
+            window.dashboardCharts.renderOrUpdate('analytics-signups', 'column', JSON.stringify(signupOptions));
+            window.dashboardCharts.renderOrUpdate('analytics-pipeline', 'pie', JSON.stringify(pipelineOptions));
+            window.dashboardCharts.renderOrUpdate('analytics-revenue', 'areaspline', JSON.stringify(revenueOptions));
+        });
+    </script>
+}

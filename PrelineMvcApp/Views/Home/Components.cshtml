@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Component Showcase";
+}
+
+<div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-[var(--text-strong)]">Component Showcase</h1>
+        <p class="mt-1 text-sm text-[var(--text-muted)]">Design library and design tokens for the theme system.</p>
+    </div>
+</div>
+
+<div class="grid gap-8">
+    <div class="surface-card p-8">
+        <h3 class="text-xl font-bold text-[var(--text-strong)] mb-6 border-b border-[var(--border-color)] pb-3">Buttons</h3>
+        <div class="flex flex-wrap gap-4">
+            <button class="btn-primary px-4 py-2 rounded-lg">Primary Button</button>
+            <button class="btn-secondary px-4 py-2 rounded-lg">Secondary Button</button>
+            <button class="btn-ghost px-4 py-2 rounded-lg">Ghost Button</button>
+            <button class="btn-danger px-4 py-2 rounded-lg text-rose-500 hover:bg-rose-500/10">Danger Button</button>
+        </div>
+    </div>
+
+    <div class="surface-card p-8">
+        <h3 class="text-xl font-bold text-[var(--text-strong)] mb-6 border-b border-[var(--border-color)] pb-3">Badges & Tones</h3>
+        <div class="flex flex-wrap gap-4">
+            <span class="badge-success px-2 py-0.5 rounded text-xs font-medium">Success</span>
+            <span class="badge-info px-2 py-0.5 rounded text-xs font-medium">Info</span>
+            <span class="badge-warning px-2 py-0.5 rounded text-xs font-medium">Warning</span>
+            <span class="badge-danger px-2 py-0.5 rounded text-xs font-medium">Danger</span>
+            <span class="badge-neutral px-2 py-0.5 rounded text-xs font-medium">Neutral</span>
+        </div>
+    </div>
+
+    <div class="surface-card p-8">
+        <h3 class="text-xl font-bold text-[var(--text-strong)] mb-6 border-b border-[var(--border-color)] pb-3">Form Controls</h3>
+        <div class="max-w-md space-y-4">
+            <div class="space-y-2">
+                <label for="input-field" class="text-sm font-medium text-[var(--text-strong)]">Input Field</label>
+                <input id="input-field" type="text" placeholder="Enter text..." class="w-full px-4 py-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] focus:ring-2 focus:ring-blue-500 transition-all outline-none">
+            </div>
+            <div class="space-y-2">
+                <label for="select-option" class="text-sm font-medium text-[var(--text-strong)]">Select Option</label>
+                <select id="select-option" class="w-full px-4 py-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] focus:ring-2 focus:ring-blue-500 transition-all outline-none">
+                    <option>Option 1</option>
+                    <option>Option 2</option>
+                    <option>Option 3</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>

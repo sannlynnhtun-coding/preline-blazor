@@ -1,0 +1,162 @@
+@using PrelineMvcApp.Models.Dashboard
+@{
+    ViewData["Title"] = "Dashboard";
+    var kpis = ViewBag.Kpis as IReadOnlyList<KpiMetric>;
+    var orders = ViewBag.Orders as IReadOnlyList<OrderRow>;
+}
+
+<div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-[var(--text-strong)]">Dashboard Overview</h1>
+        <p class="mt-1 text-sm text-[var(--text-muted)]">Key commercial health signals across growth, revenue, and customer operations.</p>
+    </div>
+    <div class="flex items-center gap-2">
+        <button type="button" class="btn-secondary">Download Report</button>
+        <button type="button" class="btn-primary">Create Alert</button>
+    </div>
+</div>
+
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    @if (kpis != null)
+    {
+        @foreach (var kpi in kpis)
+        {
+            <div class="surface-card p-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-[var(--text-muted)]">@kpi.Label</span>
+                    <span class="inline-flex items-center gap-1 text-xs font-semibold @(kpi.DeltaPositive ? "text-emerald-500" : "text-rose-500")">
+                        @kpi.Delta
+                        @if (kpi.DeltaPositive)
+                        {
+                            <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6" /></svg>
+                        }
+                        else
+                        {
+                            <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6" /></svg>
+                        }
+                    </span>
+                </div>
+                <div class="mt-2 text-2xl font-bold text-[var(--text-strong)]">@kpi.Value</div>
+                <p class="mt-1 text-xs text-[var(--text-muted)]">@kpi.Hint</p>
+            </div>
+        }
+    }
+</div>
+
+<div class="mt-4 grid gap-4 xl:grid-cols-3">
+    <div class="xl:col-span-2 surface-card p-5">
+        <h3 class="text-lg font-semibold text-[var(--text-strong)]">Revenue Trajectory</h3>
+        <p class="text-sm text-[var(--text-muted)] mb-4">Monthly recurring revenue over the last 12 months.</p>
+        <div id="revenue-overview" style="height: 330px;"></div>
+    </div>
+
+    <div class="surface-card p-5">
+        <h3 class="text-lg font-semibold text-[var(--text-strong)]">Acquisition Mix</h3>
+        <p class="text-sm text-[var(--text-muted)] mb-4">How users discover and convert.</p>
+        <div id="channel-mix" style="height: 330px;"></div>
+    </div>
+</div>
+
+<div class="mt-4 grid gap-4 xl:grid-cols-3">
+    <div class="xl:col-span-2 surface-card p-5">
+        <h3 class="text-lg font-semibold text-[var(--text-strong)]">Recent Orders</h3>
+        <p class="text-sm text-[var(--text-muted)] mb-4">Operational queue for recently updated orders.</p>
+        
+        <div class="table-wrap">
+            <table class="table-base">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (orders != null)
+                    {
+                        @foreach (var order in orders)
+                        {
+                            <tr>
+                                <td><span class="font-medium text-[var(--text-strong)]">@order.OrderNo</span></td>
+                                <td>@order.Customer</td>
+                                <td>@order.Amount</td>
+                                <td>
+                                    @switch (order.Status.ToLowerInvariant())
+                                    {
+                                        case "fulfilled":
+                                            <span class="badge-success inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium">@order.Status</span>
+                                            break;
+                                        case "processing":
+                                            <span class="badge-info inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium">@order.Status</span>
+                                            break;
+                                        case "pending":
+                                            <span class="badge-warning inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium">@order.Status</span>
+                                            break;
+                                        case "cancelled":
+                                            <span class="badge-danger inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium">@order.Status</span>
+                                            break;
+                                        default:
+                                            <span class="badge-neutral inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium">@order.Status</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>@order.CreatedOn.ToString("MMM dd, yyyy")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="surface-card p-5">
+        <h3 class="text-lg font-semibold text-[var(--text-strong)]">Operational Alerts</h3>
+        <p class="text-sm text-[var(--text-muted)] mb-4">Latest automated health checks.</p>
+        
+        <div class="space-y-4">
+            <div class="flex gap-3">
+                <span class="size-2 mt-1.5 shrink-0 rounded-full bg-rose-500"></span>
+                <div>
+                    <h4 class="text-sm font-medium text-[var(--text-strong)]">Database Lag</h4>
+                    <p class="text-xs text-[var(--text-muted)]">Replication lag exceeded 500ms on shard 3.</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <span class="size-2 mt-1.5 shrink-0 rounded-full bg-amber-500"></span>
+                <div>
+                    <h4 class="text-sm font-medium text-[var(--text-strong)]">SSL Certificate</h4>
+                    <p class="text-xs text-[var(--text-muted)]">Expiry in 14 days for staging domain.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const revenueOptions = {
+                xAxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] },
+                series: [{
+                    name: 'Revenue',
+                    data: [148000, 156000, 171000, 179000, 188000, 196000, 208000, 219000, 232000, 249000, 264000, 284200],
+                    type: 'areaspline'
+                }]
+            };
+
+            const channelOptions = {
+                series: [{
+                    name: 'Channels',
+                    data: [['Organic', 36.4], ['Paid', 24.1], ['Partner', 17.3], ['Outbound', 12.5], ['Referral', 9.7]],
+                    type: 'pie',
+                    innerSize: '60%'
+                }]
+            };
+
+            window.dashboardCharts.renderOrUpdate('revenue-overview', 'areaspline', JSON.stringify(revenueOptions));
+            window.dashboardCharts.renderOrUpdate('channel-mix', 'pie', JSON.stringify(channelOptions));
+        });
+    </script>
+}

@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-[var(--text-strong)]">Workspace Settings</h1>
+        <p class="mt-1 text-sm text-[var(--text-muted)]">Customize your dashboard experience and global preferences.</p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="surface-card p-6">
+        <h3 class="text-lg font-bold text-[var(--text-strong)] border-b border-[var(--border-color)] pb-3">General Information</h3>
+        <div class="mt-6 grid gap-4 grid-cols-2">
+            <div class="space-y-2">
+                <label for="workspace-name" class="text-sm font-medium text-[var(--text-strong)]">Workspace Name</label>
+                <input id="workspace-name" type="text" value="Preline Enterprise" class="w-full px-4 py-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="space-y-2">
+                <label for="workspace-url" class="text-sm font-medium text-[var(--text-strong)]">Workspace URL</label>
+                <div class="flex">
+                    <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-[var(--border-color)] bg-[var(--surface-subtle)] text-[var(--text-muted)]">preline.io/</span>
+                    <input id="workspace-url" type="text" value="enterprise" class="w-full px-4 py-2 rounded-r-lg border border-[var(--border-color)] bg-[var(--surface-subtle)] focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="surface-card p-6">
+        <h3 class="text-lg font-bold text-[var(--text-strong)] border-b border-[var(--border-color)] pb-3">Appearance</h3>
+        <div class="mt-6 space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h4 class="font-medium text-[var(--text-strong)]">Adaptive Mode</h4>
+                    <p class="text-xs text-[var(--text-muted)]">Sync UI theme defaults with your operating system.</p>
+                </div>
+                <div class="relative inline-block w-12 h-6">
+                    <input type="checkbox" checked class="peer sr-only">
+                    <span class="absolute inset-0 bg-gray-200 dark:bg-neutral-800 rounded-full transition-colors peer-checked:bg-blue-600"></span>
+                    <span class="absolute left-1 top-1 size-4 bg-white rounded-full transition-transform peer-checked:translate-x-6"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-end gap-3">
+        <button class="btn-secondary">Discard Changes</button>
+        <button class="btn-primary">Save Settings</button>
+    </div>
+</div>

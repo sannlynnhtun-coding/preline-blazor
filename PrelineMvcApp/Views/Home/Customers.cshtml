@@ -1,0 +1,52 @@
+@using PrelineMvcApp.Models.Dashboard
+@model IReadOnlyList<CustomerRow>
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-[var(--text-strong)]">Customers</h1>
+        <p class="mt-1 text-sm text-[var(--text-muted)]">Active accounts and revenue profiles across your workspace.</p>
+    </div>
+    <div class="flex items-center gap-2">
+        <button type="button" class="btn-primary">Add Customer</button>
+    </div>
+</div>
+
+<div class="surface-card p-5">
+    <div class="table-wrap">
+        <table class="table-base">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Segment</th>
+                    <th>MRR</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var customer in Model)
+                {
+                    <tr>
+                        <td><span class="font-medium">@customer.Name</span></td>
+                        <td>@customer.Email</td>
+                        <td>@customer.Segment</td>
+                        <td>@customer.Mrr</td>
+                        <td>
+                            <span class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium @(customer.Status == "Healthy" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-800/30 dark:text-emerald-500" : "bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-500")">
+                                <span class="size-1.5 rounded-full @(customer.Status == "Healthy" ? "bg-emerald-600 dark:bg-emerald-500" : "bg-amber-600 dark:bg-amber-500")"></span>
+                                @customer.Status
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <button class="text-[var(--text-muted)] hover:text-[var(--text-strong)]">View</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,78 @@
+@using PrelineMvcApp.Models.Dashboard
+@model IReadOnlyList<InvoiceRow>
+@{
+    ViewData["Title"] = "Billing";
+}
+
+<div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-[var(--text-strong)]">Billing</h1>
+        <p class="mt-1 text-sm text-[var(--text-muted)]">Manage workspace subscriptions, payment methods, and invoices.</p>
+    </div>
+    <div class="flex items-center gap-2">
+        <button type="button" class="btn-secondary">Export Statement</button>
+        <button type="button" class="btn-primary">Update Subscription</button>
+    </div>
+</div>
+
+<div class="grid gap-4 xl:grid-cols-3">
+    <div class="xl:col-span-2 surface-card p-5">
+        <h3 class="text-lg font-semibold text-[var(--text-strong)]">Invoice History</h3>
+        <p class="text-sm text-[var(--text-muted)] mb-4">Past transactions and upcoming charges.</p>
+        
+        <div class="table-wrap">
+            <table class="table-base">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Due On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var invoice in Model)
+                    {
+                        <tr>
+                            <td><span class="font-medium text-[var(--text-strong)]">@invoice.Number</span></td>
+                            <td>@invoice.Customer</td>
+                            <td>@invoice.Amount</td>
+                            <td>
+                                @switch (invoice.State.ToLowerInvariant())
+                                {
+                                    case "paid":
+                                        <span class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-800/30 dark:text-emerald-500">Paid</span>
+                                        break;
+                                    case "due":
+                                        <span class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-500">Due</span>
+                                        break;
+                                    case "overdue":
+                                        <span class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 dark:bg-rose-800/30 dark:text-rose-500">Overdue</span>
+                                        break;
+                                    default:
+                                        <span class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-white/10 dark:text-white">@invoice.State</span>
+                                        break;
+                                }
+                            </td>
+                            <td>@invoice.DueOn.ToString("MMM dd, yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="surface-card p-5">
+        <h3 class="text-lg font-semibold text-[var(--text-strong)]">Current Plan</h3>
+        <div class="mt-4 rounded-xl border border-[var(--border-color)] p-4 bg-[var(--surface-subtle)]">
+            <h4 class="text-sm font-semibold text-[var(--text-strong)] uppercase tracing-wide">Enterprise Pro</h4>
+            <div class="mt-2 flex items-baseline gap-1">
+                <span class="text-3xl font-bold text-[var(--text-strong)]">$2,450</span>
+                <span class="text-sm text-[var(--text-muted)]">/month</span>
+            </div>
+            <p class="mt-4 text-xs text-[var(--text-muted)]">Next billing cycle starts Nov 12, 2024.</p>
+            <button class="mt-6 w-full btn-primary text-sm">Download Last PDF</button>
+        </div>
+    </div>
+</div>

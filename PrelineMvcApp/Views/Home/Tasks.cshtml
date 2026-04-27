@@ -1,0 +1,46 @@
+@using PrelineMvcApp.Models.Dashboard
+@model IReadOnlyList<TaskRow>
+@{
+    ViewData["Title"] = "Tasks";
+}
+
+<div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-[var(--text-strong)]">Workspace Tasks</h1>
+        <p class="mt-1 text-sm text-[var(--text-muted)]">Operational checklist and strategic project milestones.</p>
+    </div>
+    <div class="flex items-center gap-2">
+        <button type="button" class="btn-primary">New Task</button>
+    </div>
+</div>
+
+<div class="surface-card p-5">
+    <div class="space-y-4">
+        @foreach (var task in Model)
+        {
+            <div class="flex items-center justify-between p-4 rounded-xl border border-[var(--border-color)] bg-[var(--surface-subtle)]/30 hover:bg-[var(--surface-subtle)] transition-colors">
+                <div class="flex items-center gap-4">
+                    <input type="checkbox" @(task.Done ? "checked" : "") class="size-5 rounded border-[var(--border-color)] bg-[var(--surface-card)] text-blue-600 focus:ring-blue-500" readonly>
+                    <div>
+                        <h4 class="font-semibold text-[var(--text-strong)] @(task.Done ? "line-through opacity-50" : "")">@task.Title</h4>
+                        <p class="text-xs text-[var(--text-muted)]">Assignee: @task.Assignee • Due: @task.DueOn.ToString("MMM dd")</p>
+                    </div>
+                </div>
+                <div>
+                    @switch (task.Priority.ToLowerInvariant())
+                    {
+                        case "high":
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800 dark:bg-rose-800/30 dark:text-rose-500">High</span>
+                            break;
+                        case "medium":
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-500">Medium</span>
+                            break;
+                        default:
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-500">@task.Priority</span>
+                            break;
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

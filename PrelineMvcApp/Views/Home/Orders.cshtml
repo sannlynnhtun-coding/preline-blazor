@@ -1,0 +1,59 @@
+@using PrelineMvcApp.Models.Dashboard
+@model IReadOnlyList<OrderRow>
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-[var(--text-strong)]">Orders</h1>
+        <p class="mt-1 text-sm text-[var(--text-muted)]">Sales operations queue and historical transaction records.</p>
+    </div>
+</div>
+
+<div class="surface-card p-5">
+    <div class="table-wrap">
+        <table class="table-base">
+            <thead>
+                <tr>
+                    <th>Order No</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td><span class="font-medium text-[var(--text-strong)]">@order.OrderNo</span></td>
+                        <td>@order.Customer</td>
+                        <td>@order.Amount</td>
+                        <td>
+                            @switch (order.Status.ToLowerInvariant())
+                            {
+                                case "fulfilled":
+                                    <span class="badge-success inline-flex items-center px-2 py-1 rounded-md text-xs font-medium">@order.Status</span>
+                                    break;
+                                case "processing":
+                                    <span class="badge-info inline-flex items-center px-2 py-1 rounded-md text-xs font-medium">@order.Status</span>
+                                    break;
+                                case "pending":
+                                    <span class="badge-warning inline-flex items-center px-2 py-1 rounded-md text-xs font-medium">@order.Status</span>
+                                    break;
+                                case "cancelled":
+                                    <span class="badge-danger inline-flex items-center px-2 py-1 rounded-md text-xs font-medium">@order.Status</span>
+                                    break;
+                                default:
+                                    <span class="badge-neutral inline-flex items-center px-2 py-1 rounded-md text-xs font-medium">@order.Status</span>
+                                    break;
+                            }
+                        </td>
+                        <td>@order.CreatedOn.ToString("MMM dd, yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

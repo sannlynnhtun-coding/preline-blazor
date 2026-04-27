@@ -1,0 +1,20 @@
+{
+  "name": "PrelineMvcApp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./wwwroot/css/site.css -o ./wwwroot/css/output.css --minify",
+    "watch:css": "tailwindcss -i ./wwwroot/css/site.css -o ./wwwroot/css/output.css --watch",
+    "copy:vendor": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/copy-vendor.ps1",
+    "build:assets": "npm run copy:vendor && npm run build:css"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.13",
+    "@tailwindcss/forms": "^0.5.10",
+    "tailwindcss": "^4.1.13"
+  },
+  "dependencies": {
+    "highcharts": "^12.5.0",
+    "preline": "^4.1.2"
+  }
+}

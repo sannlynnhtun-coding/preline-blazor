@@ -1,0 +1,42 @@
+@using PrelineMvcApp.Models.Dashboard
+@model IReadOnlyList<ActivityRow>
+@{
+    ViewData["Title"] = "Activity Feed";
+}
+
+<div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-[var(--text-strong)]">Activity Feed</h1>
+        <p class="mt-1 text-sm text-[var(--text-muted)]">Real-time audit log of workspace changes and system events.</p>
+    </div>
+</div>
+
+<div class="max-w-3xl mx-auto space-y-4">
+    @foreach (var log in Model)
+    {
+        <div class="flex gap-4">
+            <div class="relative shrink-0 flex flex-col items-center">
+                <div class="size-8 rounded-full bg-[var(--surface-subtle)] border border-[var(--border-color)] flex items-center justify-center">
+                    <span class="text-xs font-bold text-[var(--text-strong)]">@log.Actor[0]</span>
+                </div>
+                <div class="grow w-px bg-[var(--border-color)] my-2"></div>
+            </div>
+            <div class="surface-card p-4 mb-4 flex-1">
+                <div class="flex items-center justify-between text-xs text-[var(--text-muted)] mb-2">
+                    <span class="font-bold text-[var(--text-strong)] hover:underline">@log.Actor</span>
+                    <span>@log.OccurredAtUtc.ToString("HH:mm")</span>
+                </div>
+                <p class="text-sm">
+                    <span class="text-[var(--text-muted)] italic">@log.Action</span>
+                    <span class="font-medium text-[var(--text-strong)]">@log.Target</span>
+                </p>
+                @if (log.Action == "commented")
+                {
+                    <blockquote class="mt-3 pl-3 border-l-2 border-blue-500 bg-blue-50/10 py-1 text-xs text-[var(--text-muted)]">
+                        "The new revenue charts should definitely be interactive."
+                    </blockquote>
+                }
+            </div>
+        </div>
+    }
+</div>
