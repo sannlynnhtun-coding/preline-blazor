@@ -38,10 +38,35 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: dotnet publish PrelineBlazorWasmApp/PrelineBlazorWasmApp.csproj -c Release -o publish_output
 
-      # Optional: List output for debugging if needed
       - name: List Output Contents
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: ls -R publish_output
+
+      # 4.5 Fix Blazor WASM Fingerprinting (Manual Copy)
+      # This ensures that even if fingerprinting is active, 
+      # the non-fingerprinted file names expected by the browser are present.
+      - name: Fix Blazor WASM Fingerprinting
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: |
+          cd publish_output/wwwroot/_framework
+          # Function to copy fingerprinted file to its base name
+          fix_file() {
+            pattern=$1
+            target=$2
+            # Use find to get the file (handles cases where glob might fail)
+            file=$(find . -maxdepth 1 -name "$pattern" | head -n 1)
+            if [ -n "$file" ]; then
+              cp "$file" "$target"
+              echo "Mapped $file -> $target"
+            else
+              echo "Warning: No file found matching $pattern"
+            fi
+          }
+          fix_file "blazor.webassembly.*.js" "blazor.webassembly.js"
+          fix_file "dotnet.*.js" "dotnet.js"
+          fix_file "dotnet.native.*.js" "dotnet.native.js"
+          fix_file "dotnet.runtime.*.js" "dotnet.runtime.js"
+          echo "Non-fingerprinted clones created."
 
       # 5. Push to Vercel
       - name: Deploy to Vercel
